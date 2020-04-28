@@ -42,11 +42,11 @@ arth_gl <- arth_data %>%
 library(lme4)
 
 # Linear mixed effects model for taxa richness as a function of restoration year, with transect as a random effect and habitat type as a fixed effect
-lme1 = lmer(richness_taxa ~ type*year_restoration + (1|transect), data=arth_data)
+lme1 = lmer(richness_taxa ~ type + year_restoration + (1|transect), data=arth_data)
 
 lme1
 
-summary(lme1)
+summary(lme1) 
 
 anova(lme1) # I don't understand this, just coping something I've seen repeated but yet not sure why you would do this 
 
