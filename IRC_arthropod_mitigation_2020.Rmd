@@ -1,0 +1,54 @@
+---
+title: "IRC_arthropod_analysis_2020"
+author: "Rachel Kenny"
+date: "3/30/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Load libraries & data
+```{r load}
+
+# Load packages
+library(tidyverse)
+library(readxl)
+library(readr)
+library(janitor)
+
+# Load raw data
+arth_data_raw <- read_xlsx("combined arthropod data.xlsx")
+
+# Load tidy data
+arth_data <- read_csv("IRC_restoration_arthropod_data.csv") %>% 
+  clean_names()
+
+# Filter arthropod data from CSS (coastal sage scrub) habitat
+arth_css <- arth_data %>% 
+  filter(type == "CSS")
+
+# Filter arthropod data from GL (grassland) habitat
+arth_gl <- arth_data %>% 
+  filter(type == "GL")
+
+```
+
+
+## Run analysis
+```{r}
+
+library(lme4)
+
+# Linear mixed effects model for taxa richness as a function of restoration year, with transect as a random effect and habitat type as a fixed effect
+lme1 = lmer(richness_taxa ~ type*year_restoration + (1|transect), data=arth_data)
+
+lme1
+
+summary(lme1)
+
+anova(lme1) # I don't understand this, just coping something I've seen repeated but yet not sure why you would do this 
+
+```
+
