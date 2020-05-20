@@ -1,0 +1,419 @@
+---
+title: "IRC Arthropod Mitigation Analysis - Comparisons to Reference Sites"
+author: "Rachel Kenny"
+date: "5/11/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Load libraries & data
+```{r load}
+
+# Load packages
+library(tidyverse)
+library(readxl)
+library(readr)
+library(janitor)
+library(nlme)
+library(multcompView) # For displaying tukeys post testing in boxplots
+
+# Load raw arthropod data
+arth_data_raw <- read_xlsx("combined arthropod data.xlsx")
+
+# Load tidy arthropod data
+arth_data <- read_csv("IRC_restoration_arthropod_data.csv") %>% 
+  clean_names()
+
+# Filter arthropod data from CSS (coastal sage scrub) habitat
+arth_css <- arth_data %>% 
+  filter(type == "CSS")
+
+# Filter arthropod data from GL (grassland) habitat
+arth_gl <- arth_data %>% 
+  filter(type == "GL")
+
+##############################
+
+# Load arthropod data with weedy & intact reference sites
+arth_ref <- read_csv("IRC_restoration_arthropod_data_reference.csv") %>% 
+  clean_names() %>% 
+  filter(year_restoration != "0" & year_restoration != "1" & year_restoration != "3")
+
+# View(arth_ref)
+
+# Reference CSS
+arth_ref_css <- arth_ref %>% 
+  filter(type == "CSS" | type == "weedy" | type == "intact")
+
+# Reference GL
+arth_ref_gl <- arth_ref %>% 
+  filter(type == "GL" | type == "weedy" | type == "intact")
+
+```
+
+
+```{r}
+
+hist(arth_ref$evenness_functional)
+
+hist(arth_ref$richness_taxa)
+
+hist(arth_ref$richness_ant)
+
+
+hist(arth_gl$evenness_functional)
+
+hist(arth_gl$richness_taxa)
+
+hist(arth_gl$richness_ant)
+
+
+
+hist(arth_css$evenness_functional)
+
+hist(arth_css$richness_taxa)
+
+hist(arth_css$richness_ant)
+
+
+```
+
+
+
+```{r}
+
+hist(arth_ref)
+
+QuantileType1 <- function (v, p) {
+ v = sort(v)
+ m = 0
+ n = length(v)
+ j = floor((n * p) + m)
+ g = (n * p) + m - j
+ y = ifelse (g == 0, 0, 1)
+ ((1 - y) * v[j]) + (y * v[j+1])
+}
+
+# Generate labels for similar groupings
+generate_label_df <- function(TUKEY, variable){
+
+  # Extract labels and factor levels from Tukey post-hoc 
+  Tukey.levels <- TUKEY[[variable]][,4]
+  Tukey.labels <- data.frame(multcompLetters(Tukey.levels)['Letters'])
+
+  #I need to put the labels in the same order as in the boxplot :
+  Tukey.labels$type=rownames(Tukey.labels)
+  Tukey.labels=Tukey.labels[order(Tukey.labels$type) , ]
+  return(Tukey.labels)
+}
+
+```
+
+## ANOVA and Tukey's Post Hoc testing 
+### Taxa richness ~ Habitat type
+```{r tky_tr}
+
+#Isolate taxa richness
+arth_tky1 <- arth_ref %>% 
+  select(type,richness_taxa)
+
+# Model the effect of habitat type on metric
+model1 =lm(arth_tky1$richness_taxa ~ arth_tky1$type)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of treatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'arth_tky1$type', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "arth_tky1$type")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','type')#rename columns for merging
+
+yvalue1 <- aggregate(.~type, data=arth_tky1, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+tky_bar_tr <- ggplot(arth_tky1, aes(x = type, y = richness_taxa)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = '\nHabitat type', y = 'Taxa richness (avg)') +
+  ggtitle(expression(atop(bold("Taxa richness ~ habitat type"), atop(italic("Comparison of Year 5 mitigation data to reference sites"), "")))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=type), stat = "boxplot")+
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = type, y = richness_taxa, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete(labels = c("Coastal sage scrub\nyear 5", "Grassland\nyear 5", "Intact\nreference site", "Weedy\nreference site"))
+
+tky_bar_tr
+
+ggsave("tky_bar_tr.png", plot = tky_bar_tr, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+## ANOVA and Tukey's Post Hoc testing 
+### Ant species richness ~ Habitat type
+```{r tky_ar}
+
+#Isolate ant species richness
+arth_tky2 <- arth_ref %>% 
+  select(type,richness_ant)
+
+# Model the effect of habitat type on metric
+model2 =lm(arth_tky2$richness_ant ~ arth_tky2$type)
+
+ANOVA2 =aov(model2)
+
+summary(ANOVA2)
+ 
+# Tukey test to study each pair of treatment :
+TUKEY2 <- TukeyHSD(x=ANOVA2, 'arth_tky2$type', conf.level=0.95)
+
+labels2 <- generate_label_df(TUKEY2, "arth_tky2$type")#generate labels using function
+
+labels2
+
+names(labels2)<-c('Letters','type')#rename columns for merging
+
+yvalue2 <- aggregate(.~type, data=arth_tky2, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df2 <-merge(labels2,yvalue2) #merge dataframes
+
+tky_bar_ar <- ggplot(arth_tky2, aes(x = type, y = richness_ant)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = '\nHabitat type', y = 'Ant species richness (avg)') +
+  ggtitle(expression(atop(bold("Ant species richness ~ habitat type"), atop(italic("Comparison of Year 5 mitigation data to reference sites"), "")))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=type), stat = "boxplot")+
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df2, aes(x = type, y = richness_ant, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete(labels = c("Coastal sage scrub\nyear 5", "Grassland\nyear 5", "Intact\nreference site", "Weedy\nreference site"))
+
+tky_bar_ar
+
+ggsave("tky_bar_ar.png", plot = tky_bar_ar, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+## ANOVA and Tukey's Post Hoc testing 
+### Functional evenness ~ Habitat type
+```{r tky_fe}
+
+#Isolate functional evenness
+arth_tky3 <- arth_ref %>% 
+  select(type,evenness_functional)
+
+# Model the effect of habitat type on metric
+model3 =lm(arth_tky3$evenness_functional ~ arth_tky3$type)
+
+ANOVA3 =aov(model3)
+
+summary(ANOVA3)
+ 
+# Tukey test to study each pair of treatment :
+TUKEY3 <- TukeyHSD(x=ANOVA3, 'arth_tky3$type', conf.level=0.95)
+
+labels3 <- generate_label_df(TUKEY3, "arth_tky3$type")#generate labels using function
+
+labels3
+
+names(labels3)<-c('Letters','type')#rename columns for merging
+
+yvalue3 <- aggregate(.~type, data=arth_tky3, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df3 <-merge(labels3,yvalue3) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df3$Letters[1:4] <- c("a", "ab", "b", "ab")
+
+tky_bar_fe <- ggplot(arth_tky3, aes(x = type, y = evenness_functional)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = '\nHabitat type', y = 'Functional evenness (avg)') +
+  ggtitle(expression(atop(bold("Functional evenness ~ habitat type"), atop(italic("Comparison of Year 5 mitigation data to reference sites"), "")))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=type), stat = "boxplot")+
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df3, aes(x = type, y = evenness_functional, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete(labels = c("Coastal sage scrub\nyear 5", "Grassland\nyear 5", "Intact\nreference site", "Weedy\nreference site"))
+
+tky_bar_fe
+
+ggsave("tky_bar_fe.png", plot = tky_bar_fe, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+## Anova - taxa richness ~ ref_type
+```{r}
+
+# What is the effect of the treatment on the value
+model=lm(arth_ref$richness_taxa ~ arth_ref$type)
+
+ANOVA=aov(model)
+ 
+# Tukey test to study each pair of treatment :
+TUKEY <- TukeyHSD(x=ANOVA, 'arth_ref$type', conf.level=0.95)
+ 
+# Tuckey test representation :
+tky_tr_ref <- plot(TUKEY , las=1 , col="blue")
+
+tky_tr_ref
+
+# bar graph taxa richness ~ type
+bar_tr_ref <- ggplot(arth_ref) + 
+  geom_bar(aes(x = type, y = richness_taxa, fill=type), stat = "summary", fun.y = "mean") +
+  theme_classic() +
+  ggtitle("Taxa richness ~ habitat type") +
+  xlab("Habitat type") +
+  ylab("Taxa richness") +
+  scale_y_continuous(expand=c(0,0))+
+  scale_x_discrete(expand=c(0.2,0))+
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))+
+  scale_fill_brewer(palette="Paired")
+
+bar_tr_ref
+
+ggsave("bar_tr_ref.png", plot = bar_tr_ref, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+
+
+```
+
+
+## Anova - ant species richness ~ ref_type
+```{r}
+
+# What is the effect of the treatment on the value
+model=lm(arth_ref$richness_ant ~ arth_ref$type)
+
+ANOVA=aov(model)
+ 
+# Tukey test to study each pair of treatment :
+TUKEY <- TukeyHSD(x=ANOVA, 'arth_ref$type', conf.level=0.95)
+ 
+# Tuckey test representation :
+tky_tr_ref <- plot(TUKEY , las=1 , col="blue")
+
+tky_tr_ref
+
+# bar graph ant species richness ~ type
+bar_ar_ref <- ggplot(arth_ref) + 
+  geom_bar(aes(x = type, y = richness_ant, fill=type), stat = "summary", fun.y = "mean") +
+  theme_classic() +
+  ggtitle("ant species richness ~ habitat type") +
+  xlab("Habitat type") +
+  ylab("ant species richness") +
+  scale_y_continuous(expand=c(0,0))+
+  scale_x_discrete(expand=c(0.2,0))+
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))+
+  scale_fill_brewer(palette="Paired")
+
+bar_ar_ref
+
+ggsave("bar_ar_ref.png", plot = bar_ar_ref, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+
+```
+
+
+## Anova - functional evenness ~ ref_type
+```{r}
+
+View(arth_ref)
+
+# What is the effect of the treatment on the value
+model=lm(arth_ref$evenness_functional ~ arth_ref$type)
+
+ANOVA=aov(model)
+ 
+# Tukey test to study each pair of treatment :
+TUKEY <- TukeyHSD(x=ANOVA, 'arth_ref$type', conf.level=0.95)
+ 
+# Tuckey test representation :
+tky_tr_ref <- plot(TUKEY , las=1 , col="blue")
+
+tky_tr_ref
+
+# bar graph functional evenness ~ type
+bar_fe_ref <- ggplot(arth_ref) + 
+  geom_bar(aes(x = type, y = evenness_functional, fill=type), stat = "summary", fun.y = "mean") +
+  theme_classic() +
+  ggtitle("functional evenness ~ habitat type") +
+  xlab("Habitat type") +
+  ylab("functional evenness") +
+  scale_y_continuous(expand=c(0,0))+
+  scale_x_discrete(expand=c(0.2,0))+
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))+
+  scale_fill_brewer(palette="Paired")
+
+bar_fe_ref
+
+ggsave("bar_fe_ref.png", plot = bar_fe_ref, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+
+```
+
+
+## Proportional biomass - ref
+```{r}
+
+arth_ref_2 <- arth_ref %>% 
+  select(type, transect, year_restoration, detritivores, herb_chew, herb_suck, parasitoid, pollinator, predator, scavenger) %>% 
+  gather("functional_group", "proportional_biomass", 4:10)
+
+# View(arth_ref_2)
+
+arth_ref_3 <- arth_ref_2
+arth_ref_3$type <- as.factor(arth_ref_3$type)
+
+# View(arth_ref_3)
+
+# bar graph proportional biomass ~ type
+
+plot_ref_bio <- ggplot(arth_ref_3) + 
+  geom_bar(aes(x = type, y = proportional_biomass, fill = functional_group), position = "fill", stat = "summary") +
+  theme_classic() +
+  ggtitle("Differences in proportional biomass of arthropods\nby habitat type and reference sites") +
+  xlab("Habitat type") +
+  ylab("Proportional biomass") +
+  scale_y_continuous(expand=c(0,0), breaks = c(.2,.4,.6,.8,1))+
+  scale_x_discrete(expand=c(0.2,0))+
+  scale_fill_brewer("Functional Group",palette="Set2", labels=c("Detritivore", "Herbivore (chewing)", "Herbivore (sucking)", "Parasitoid", "Pollinator", "Predator", "Scavenger")) +
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))
+
+plot_ref_bio
+
+ggsave("plot_ref_bio.png", plot = plot_ref_bio, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+
+
+```

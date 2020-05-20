@@ -19,10 +19,10 @@ library(readr)
 library(janitor)
 library(nlme)
 
-# Load raw data
+# Load raw arthropod data
 arth_data_raw <- read_xlsx("combined arthropod data.xlsx")
 
-# Load tidy data
+# Load tidy arthropod data
 arth_data <- read_csv("IRC_restoration_arthropod_data.csv") %>% 
   clean_names()
 
@@ -34,22 +34,22 @@ arth_css <- arth_data %>%
 arth_gl <- arth_data %>% 
   filter(type == "GL")
 
-```
+##############################
 
+# Load arthropod data with weedy & intact reference sites
+arth_ref <- read_csv("IRC_restoration_arthropod_data_reference.csv") %>% 
+  clean_names() %>% 
+  filter(year_restoration != "0" & year_restoration != "1" & year_restoration != "3")
 
+View(arth_ref)
 
-```{r}
+# Reference CSS
+arth_ref_css <- arth_ref %>% 
+  filter(type == "CSS" | type == "weedy" | type == "intact")
 
-# Confidence intervals
-
-# (-.3, .5) might actualy be anywhere between -.3 and .5, the true value may lie between -.3 and .5
-
-# .1 1.96*.108
-
-# (-.1 - .3)
-
-# run two seperate models for habitat type
-
+# Reference GL
+arth_ref_gl <- arth_ref %>% 
+  filter(type == "GL" | type == "weedy" | type == "intact")
 
 ```
 
@@ -106,110 +106,50 @@ mean(arth_data$evenness_functional)
 
 ```
 
-## Plot lm models
+
 ```{r}
 
-library(coefplot)
+transects <- unique(arth_data$transect)
 
-# richness - taxa
-lme_rich_taxa <- lme(
-  fixed = richness_taxa ~ type + year_restoration, 
-  random = ~1|transect, 
-  data = arth_data)
-
-summary(lme_rich_taxa)
-# CI (-0.0083, 0.2091) 0.1004
-
-# CI_rich <- coefplot:::buildModelCI(lme_rich_taxa)
-# 
-# lm_rich_plot <- 
-#   coefplot(lme_rich_taxa)
-# 
-# library(multcomp)
-# 
-# tmp <- as.data.frame(confint(glht(lme_rich_taxa))$confint)
-# tmp$Comparison <- rownames(tmp)
-# ggplot(tmp, aes(x = Comparison, y = Estimate, ymin = lwr, ymax = upr)) +
-#   geom_errorbar() + geom_point()
-
-install.packages("coefplot2",
-  repos="http://www.math.mcmaster.ca/bolker/R",
-  type="source")
-
-library(coefplot2)
-
-coefplot2(lme_rich_taxa)
-
-
-library(sjPlot)
-plot_model(lme_rich_taxa)
-
-library(broom.mixed)
-dwplot(lme_rich_taxa)+geom_vline()
-
-######
-
-
-des = model.matrix(formula(lme_rich_taxa)[-2], arth_data)
-
-predvar = diag( des %*% vcov(lme_rich_taxa) %*% t(des) )
-
-arth_data$predlme = predict(lme_rich_taxa, newdata = arth_data, level = 0)
-
-arth_data$lower = with(arth_data, predlme - 2*sqrt(predvar) )
-arth_data$upper = with(arth_data, predlme + 2*sqrt(predvar) )
-
-library(ggplot2)
-
-ggplot(arth_data, aes(x = year_restoration, y = richness_taxa, color = type) ) +
-     geom_rug(sides = "b", size = 1) +
-     geom_ribbon(data = arth_data, aes(y = NULL, ymin = lower, ymax = upper, 
-                                        color = NULL, fill = type),
-                 alpha = .15) +
-          geom_line(data = arth_data, aes(y = predlme), size = .75)
-
-#########
-
-library(dotwhisker)
-library(broom)
-library(dplyr)
-
-# draw a dot-and-whisker plot
-lme_rich_taxa %>% 
-  plot()
-
-######
-
-library(coefplot)
-
-plot1 <- 
-coefplot(lme1, drop(_cons))
-
-plot1
-
-## THIS IS IT
-library(jtools)
-plot_coefs(lme1, lme2, lme3)
-plot_coefs(lme3)
-
-
-
-#####
-
-mod_wold <-lm.cluster(kg_perha_planted ~ intercropped + purchased_seed + inorg_perha_planted+ org_perha_planted + pest_perha_planted +  landscape_no + round + season + erosion_c, data = Wheat, cluster = "cluster")
-
-mlm_plot_wheat <- 
-coefplot(mod_wold$lm_res, title = '\n\nWheat ', ylab="", xlab = "Kg per HA Planted", color="#9c8dc3", predictors = c("intercropped", "erosion_c", "purchased_seed", "inorg_perha_planted", "org_perha_planted","pest_perha_planted"),  sort="alphabetical", newNames=c(erosion_cTRUE="Erosion Control", intercroppedTRUE = "Intercropped", purchased_seedTRUE = "Purchased Seed", inorg_perha_planted ="10s KGs of Inorganic Fertilizer", org_perha_planted = "100s KGs of Organic Fertilizer", pest_perha_planted = "10s KGs of Pesticide"))+
-  theme_vsr()
-
-mlm_plot_wheat
+write.csv(transects, "transects.csv")
 
 ```
 
 
+#Mixed effects model with year as random effect ###COME BACK TO
+```{r}
+
+view(arth_data)
+
+# richness - taxa
+lme_rich_taxa <- lme(
+  fixed = richness_taxa ~ type + year_restoration, 
+  random = ~1|transect + ~1|year, 
+  data = arth_data)
+
+summary(lme_rich_taxa)
+
+# richness - ants
+lme_rich_ant <- lme(
+  fixed = richness_ant ~ type + year_restoration, 
+  random = ~1|transect, 
+  data = arth_data)
+
+summary(lme_rich_ant)
 
 
-## CSS Linear model
+# evenness - functional
+lme_even <- lme(
+  fixed = evenness_functional ~ type + year_restoration, 
+  random = ~1|transect, 
+  data = arth_data)
+
+summary(lme_even)
+
+```
+
+
+## CSS Linear models
 ```{r}
 
 #CSS
@@ -221,7 +161,6 @@ lme_rich_taxa_css <- lme(
   data = arth_css)
 
 summary(lme_rich_taxa_css)
-
 
 
 # richness - ants 
@@ -241,10 +180,15 @@ lme_even_css <- lme(
 
 summary(lme_even_css)
 
+
+mean(arth_css$richness_taxa)
+mean(arth_css$richness_ant)
+mean(arth_css$evenness_functional)
+
 ```
 
 
-## GL Linear model
+## GL Linear models
 ```{r}
 
 # GL
@@ -256,7 +200,6 @@ lme_rich_taxa_gl <- lme(
   data = arth_gl)
 
 summary(lme_rich_taxa_gl)
-# CI (-0.3132, -0.0228) -0.1680
 
 
 # richness - ants 
@@ -266,7 +209,6 @@ lme_rich_ant_gl <- lme(
   data = arth_gl)
 
 summary(lme_rich_ant_gl)
-# CI (-0.5293, -0.3510) -0.4401 * 
 
 
 # evenness - functional 
@@ -276,13 +218,168 @@ lme_even_gl <- lme(
   data = arth_gl)
 
 summary(lme_even_gl)
-# CI (-0.0052, 0.0082) 0.0015 
+
+mean(arth_gl$richness_taxa)
+mean(arth_gl$richness_ant)
+mean(arth_gl$evenness_functional)
 
 ```
 
 
+## Anova - taxa richness ~ ref_type
+```{r}
+
+# What is the effect of the treatment on the value
+model=lm(arth_ref$richness_taxa ~ arth_ref$type)
+
+ANOVA=aov(model)
+ 
+# Tukey test to study each pair of treatment :
+TUKEY <- TukeyHSD(x=ANOVA, 'arth_ref$type', conf.level=0.95)
+ 
+# Tuckey test representation :
+tky_tr_ref <- plot(TUKEY , las=1 , col="blue")
+
+tky_tr_ref
+
+# bar graph taxa richness ~ type
+bar_tr_ref <- ggplot(arth_ref) + 
+  geom_bar(aes(x = type, y = richness_taxa, fill=type), stat = "summary", fun.y = "mean") +
+  theme_classic() +
+  ggtitle("Taxa richness ~ habitat type") +
+  xlab("Habitat type") +
+  ylab("Taxa richness") +
+  scale_y_continuous(expand=c(0,0))+
+  scale_x_discrete(expand=c(0.2,0))+
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))+
+  scale_fill_brewer(palette="Paired")
+
+bar_tr_ref
+
+```
+
+
+## Anova - ant species richness ~ ref_type
+```{r}
+
+# What is the effect of the treatment on the value
+model=lm(arth_ref$richness_ant ~ arth_ref$type)
+
+ANOVA=aov(model)
+ 
+# Tukey test to study each pair of treatment :
+TUKEY <- TukeyHSD(x=ANOVA, 'arth_ref$type', conf.level=0.95)
+ 
+# Tuckey test representation :
+tky_tr_ref <- plot(TUKEY , las=1 , col="blue")
+
+plot(TUKEY , las=1 , col="blue")
+
+tky_tr_ref
+
+# bar graph ant species richness ~ type
+bar_tr_ref <- ggplot(arth_ref) + 
+  geom_bar(aes(x = type, y = richness_ant, fill=type), stat = "summary", fun.y = "mean") +
+  theme_classic() +
+  ggtitle("ant species richness ~ habitat type") +
+  xlab("Habitat type") +
+  ylab("ant species richness") +
+  scale_y_continuous(expand=c(0,0))+
+  scale_x_discrete(expand=c(0.2,0))+
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))+
+  scale_fill_brewer(palette="Paired")
+
+bar_tr_ref
+
+```
+
+
+## Anova - functional evenness ~ ref_type
+```{r}
+
+# What is the effect of the treatment on the value
+model=lm(arth_ref$evenness_functional ~ arth_ref$type)
+
+ANOVA=aov(model)
+ 
+# Tukey test to study each pair of treatment :
+TUKEY <- TukeyHSD(x=ANOVA, 'arth_ref$type', conf.level=0.95)
+ 
+# Tuckey test representation :
+tky_tr_ref <- plot(TUKEY , las=1 , col="blue")
+
+tky_tr_ref
+
+# bar graph functional evenness ~ type
+bar_tr_ref <- ggplot(arth_ref) + 
+  geom_bar(aes(x = type, y = evenness_functional, fill=type), stat = "summary", fun.y = "mean") +
+  theme_classic() +
+  ggtitle("functional evenness ~ habitat type") +
+  xlab("Habitat type") +
+  ylab("functional evenness") +
+  scale_y_continuous(expand=c(0,0))+
+  scale_x_discrete(expand=c(0.2,0))+
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))+
+  scale_fill_brewer(palette="Paired")
+
+bar_tr_ref
+
+```
+
+
+## Proportional biomass - ref
+```{r}
+
+arth_data <- read_csv("IRC_restoration_arthropod_data.csv") %>% 
+  clean_names()
+
+arth_ref_2 <- arth_ref %>% 
+  select(type, transect, year_restoration, detritivores, herb_chew, herb_suck, parasitoid, pollinator, predator, scavenger) %>% 
+  gather("functional_group", "proportional_biomass", 4:10)
+
+View(arth_ref_2)
+
+arth_ref_3 <- arth_ref_2
+arth_ref_3$type <- as.factor(arth_ref_3$type)
+
+View(arth_ref_3)
+
+# bar graph proportional biomass ~ type
+
+plot_ref_bio <- ggplot(arth_ref_3) + 
+  geom_bar(aes(x = type, y = proportional_biomass, fill = functional_group), position = "fill", stat = "summary") +
+  theme_classic() +
+  ggtitle("Differences in proportional biomass of arthropods\nby habitat type and reference sites") +
+  xlab("Habitat type") +
+  ylab("Proportional biomass") +
+  scale_y_continuous(expand=c(0,0), breaks = c(.2,.4,.6,.8,1))+
+  scale_x_discrete(expand=c(0.2,0))+
+  scale_fill_brewer("Functional Group",palette="Set2", labels=c("Detritivore", "Herbivore (chewing)", "Herbivore (sucking)", "Parasitoid", "Pollinator", "Predator", "Scavenger")) +
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))
+
+plot_ref_bio
+
+```
+
+
+
+
 ## Plots of richness (taxa and ant) and evenness
 ```{r}
+
+arth_data$year_restoration <- as.factor(arth_data$year_restoration)
 
 # Richness (taxa) plot
 plot_rich <- ggplot(arth_data) + 
@@ -290,10 +387,26 @@ plot_rich <- ggplot(arth_data) +
            position = "dodge", stat = "summary", fun.y = "mean") +
   theme_classic() +
   scale_y_continuous(expand=c(0,0), breaks=(0:13))+
-  scale_x_continuous(breaks = 0:5)+
-  theme(axis.title.y = element_text(size = 10))
+  theme(axis.title.y = element_text(size = 10))+
+  ggtitle("Taxa richness ~ Year of restoration")+
+  ylab("Taxa richness")+
+  xlab("Year of restoration")
 
 plot_rich
+
+
+plot_rich_habitat <- ggplot(arth_data, aes(fill=type)) + 
+  geom_bar(aes(x = year_restoration, richness_taxa), 
+           position = "dodge", stat = "summary", fun.y = "mean") +
+  theme_classic() +
+  scale_y_continuous(expand=c(0,0), breaks=(0:13))+
+  theme(axis.title.y = element_text(size = 10))+
+  ggtitle("Taxa richness ~ Year of restoration")+
+  ylab("Taxa richness")+
+  xlab("Year of restoration")+
+  scale_fill_brewer(palette="Paired")
+
+plot_rich_habitat
 
 
 # Richness (ants) plot
@@ -302,10 +415,26 @@ plot_rich_ant <- ggplot(arth_data) +
            position = "dodge", stat = "summary", fun.y = "mean") +
   theme_classic() +
   scale_y_continuous(expand=c(0,0))+
-  scale_x_continuous(breaks = 0:5)+
-  theme(axis.title.y = element_text(size = 10))
+  theme(axis.title.y = element_text(size = 10))+
+  ggtitle("Ant species richness ~ Year of restoration")+
+  ylab("Ant species richness")+
+  xlab("Year of restoration")
 
 plot_rich_ant
+
+
+plot_ant_habitat <- ggplot(arth_data, aes(fill=type)) + 
+  geom_bar(aes(x = year_restoration, richness_ant), 
+           position = "dodge", stat = "summary", fun.y = "mean") +
+  theme_classic() +
+  scale_y_continuous(expand=c(0,0), breaks=(0:13))+
+  theme(axis.title.y = element_text(size = 10))+
+  ggtitle("Ant species richness ~ Year of restoration")+
+  ylab("Ant species richness")+
+  xlab("Year of restoration")+
+  scale_fill_brewer(palette="Paired")
+
+plot_ant_habitat
 
 
 # Evenness plot
@@ -314,10 +443,32 @@ plot_even <- ggplot(arth_data) +
            position = "dodge", stat = "summary", fun.y = "mean") +
   theme_classic() +
   scale_y_continuous(expand=c(0,0))+
-  scale_x_continuous(breaks = 0:5)+
-  theme(axis.title.y = element_text(size = 10))
+  theme(axis.title.y = element_text(size = 10))+
+  ggtitle("Functional evenness ~ Year of restoration")+
+  ylab("Functional evenness")+
+  xlab("Year of restoration")
 
 plot_even
+
+plot_even_habitat <- ggplot(arth_data, aes(fill=type)) + 
+  geom_bar(aes(x = year_restoration, evenness_functional), 
+           position = "dodge", stat = "summary", fun.y = "mean") +
+  theme_classic() +
+  scale_y_continuous(expand=c(0,0), breaks=(0:13))+
+  theme(axis.title.y = element_text(size = 10))+
+  ggtitle("Functional evenness ~ Year of restoration")+
+  ylab("Functional evenness")+
+  xlab("Year of restoration")+
+  scale_fill_brewer(palette="Paired")
+
+plot_even_habitat
+
+ggsave("barplot1_rich.png", plot = plot_rich, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+ggsave("barplot2_rich_habitat.png", plot = plot_rich_habitat, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+ggsave("barplot3_rich_ant.png", plot = plot_rich_ant, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+ggsave("barplot4_ant_habitat.png", plot = plot_ant_habitat, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+ggsave("barplot5_even.png", plot = plot_even, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+ggsave("barplot6_even_habitat.png", plot = plot_even_habitat, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
 
 ```
 
@@ -326,7 +477,7 @@ plot_even
 ```{r}
 arth_data_2 <- arth_data %>% 
   select(transect, year_restoration, detritivores, herb_chew, herb_suck, parasitoid, pollinator, predator, scavenger) %>% 
-  gather("functional_group", "relative_abundance", 3:9)
+  gather("functional_group", "proportional_biomass", 3:9)
 
 View(arth_data_2)
 
@@ -335,7 +486,7 @@ arth_data_3$year_restoration <- as.factor(arth_data_3$year_restoration)
 
 # All
 plot_all <- ggplot(arth_data_3) + 
-  geom_bar(aes(x = year_restoration, y = relative_abundance, fill = functional_group), position = "fill", stat = "summary", fun.y = "mean") +
+  geom_bar(aes(x = year_restoration, y = proportional_biomass, fill = functional_group), position = "fill", stat = "summary", fun.y = "mean") +
   theme_classic() +
   ggtitle("Changes in proportional biomass of arthropods over time") +
   xlab("Year of restoration") +
@@ -354,12 +505,140 @@ ggsave("plot_relative_biomass.png", plot = plot_all, device = "png", width = 5, 
 
 ```
 
+## Habitat specifc pllots: CSS
+```{r}
 
+arth_data_2css <- arth_css %>% 
+  select(transect, year_restoration, detritivores, herb_chew, herb_suck, parasitoid, pollinator, predator, scavenger) %>% 
+  gather("functional_group", "proportional_biomass", 3:9)
+
+arth_data_3css <- arth_data_2css
+arth_data_3css$year_restoration <- as.factor(arth_data_3css$year_restoration)
+
+
+# All
+plot_css <- ggplot(arth_data_3css) + 
+  geom_bar(aes(x = year_restoration, y = proportional_biomass, fill = functional_group), position = "fill", stat = "summary", fun.y = "mean") +
+  theme_classic() +
+  ggtitle("Changes in proportional biomass of arthropods over time") +
+  xlab("Year of restoration") +
+  ylab("Proportional biomass") +
+  scale_y_continuous(expand=c(0,0), breaks = c(.2,.4,.6,.8,1))+
+  scale_x_discrete(expand=c(0.2,0))+
+  scale_fill_brewer("Functional Group",palette="Set2", labels=c("Detritivore", "Herbivore (chewing)", "Herbivore (sucking)", "Parasitoid", "Pollinator", "Predator", "Scavenger")) +
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))
+
+plot_css
+
+ggsave("plot_relative_biomass_css.png", plot = plot_css, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+
+```
+
+## Habitat specifc plots: GL
+```{r}
+
+arth_data_2gl <- arth_gl %>% 
+  select(transect, year_restoration, detritivores, herb_chew, herb_suck, parasitoid, pollinator, predator, scavenger) %>% 
+  gather("functional_group", "proportional_biomass", 3:9)
+
+arth_data_3gl <- arth_data_2gl
+arth_data_3gl$year_restoration <- as.factor(arth_data_3gl$year_restoration)
+
+
+# All
+plot_gl <- ggplot(arth_data_3gl) + 
+  geom_bar(aes(x = year_restoration, y = proportional_biomass, fill = functional_group), position = "fill", stat = "summary", fun.y = "mean") +
+  theme_classic() +
+  ggtitle("Changes in proportional biomass of arthropods over time") +
+  xlab("Year of restoration") +
+  ylab("Proportional biomass") +
+  scale_y_continuous(expand=c(0,0), breaks = c(.2,.4,.6,.8,1))+
+  scale_x_discrete(expand=c(0.2,0))+
+  scale_fill_brewer("Functional Group",palette="Set2", labels=c("Detritivore", "Herbivore (chewing)", "Herbivore (sucking)", "Parasitoid", "Pollinator", "Predator", "Scavenger")) +
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))
+
+plot_gl
+
+ggsave("plot_relative_biomass_gl.png", plot = plot_gl, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+
+```
+
+## Proportional biomass: Scatter plot
+```{r}
+
+arth_data <- read_csv("IRC_restoration_arthropod_data.csv") %>% 
+  clean_names()
+
+arth_data_2 <- arth_data %>% 
+  select(transect, year_restoration, detritivores, herb_chew, herb_suck, parasitoid, pollinator, predator, scavenger) %>% 
+  gather("functional_group", "proportional_biomass", 3:9)
+
+# lm_eqn <- function(arth_data_2){
+#     m <- lm(proportional_biomass ~ year_restoration, arth_data_2);
+#     eq <- substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2, 
+#          list(a = format(unname(coef(m)[1]), digits = 2),
+#               b = format(unname(coef(m)[2]), digits = 2),
+#              r2 = format(summary(m)$r.squared, digits = 3)))
+#     as.character(as.expression(eq));
+# }
+
+library(ggpubr)
+
+
+
+plot_scatter <- ggplot(arth_data_2, aes(x = year_restoration, y = proportional_biomass, color = functional_group)) + 
+  geom_point() + 
+  ggtitle("Title") +
+  geom_smooth(method = "lm", fill = NA) +
+  theme_classic() +
+  ggtitle("Changes in proportional biomass of arthropods over time") +
+  xlab("Year of restoration") +
+  ylab("Proportional biomass") +
+  ylim(0,1) +
+  scale_x_continuous(expand=c(0.1,0), breaks =c(0,1,2,3,4,5)) +
+  scale_color_brewer("Functional Group",palette="Set2", labels=c("Detritivore", "Herbivore (chewing)", "Herbivore (sucking)", "Parasitoid", "Pollinator", "Predator", "Scavenger")) +
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))+ 
+  geom_text(x = 25, y = 300, label = lm_eqn(df), parse = TRUE)
+
+plot_scatter2 <- ggscatter(arth_data_2, x = "year_restoration", y = "proportional_biomass", color = "functional_group", add = "reg.line") + 
+  ggtitle("Title") +
+  geom_smooth(method = "lm", fill = NA) +
+  theme_classic() +
+  ggtitle("Changes in proportional biomass of arthropods over time") +
+  xlab("Year of restoration") +
+  ylab("Proportional biomass") +
+  ylim(0,1) +
+  scale_x_continuous(expand=c(0.1,0), breaks =c(0,1,2,3,4,5)) +
+  scale_color_brewer("Functional Group",palette="Set2", labels=c("Detritivore", "Herbivore (chewing)", "Herbivore (sucking)", "Parasitoid", "Pollinator", "Predator", "Scavenger")) +
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8)) +
+  facet_wrap(~functional_group) +
+  stat_cor(label.y = .9) 
+
+plot_scatter2
+
+ggsave("plot_relative_biomass_scatter.png", plot = plot_scatter, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+
+```
+
+
+## CSS Proportional biomass: Scatter plot
 ```{r}
 
 # , breaks=seq(0:1, by=.2)
 
-plot_scatter <- ggplot(arth_data_2, aes(x = year_restoration, y = relative_abundance, color = functional_group)) + 
+plot_scatter_css <- ggplot(arth_data_2css, aes(x = year_restoration, y = proportional_biomass, color = functional_group)) + 
   geom_point() + 
   ggtitle("Title") +
   geom_smooth(method = "lm", fill = NA) +
@@ -377,11 +656,39 @@ plot_scatter <- ggplot(arth_data_2, aes(x = year_restoration, y = relative_abund
 
 plot_scatter
 
-ggsave("plot_relative_biomass_scatter.png", plot = plot_scatter, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+ggsave("plot_relative_biomass_scatter_css.png", plot = plot_scatter_css, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+
+```
+
+## GL Proportional biomass: Scatter plot
+```{r}
+
+# , breaks=seq(0:1, by=.2)
+
+plot_scatter_gl <- ggplot(arth_data_2gl, aes(x = year_restoration, y = proportional_biomass, color = functional_group)) + 
+  geom_point() + 
+  ggtitle("Title") +
+  geom_smooth(method = "lm", fill = NA) +
+  theme_classic() +
+  ggtitle("Changes in proportional biomass of arthropods over time") +
+  xlab("Year of restoration") +
+  ylab("Proportional biomass") +
+  ylim(0,1) +
+  scale_x_continuous(expand=c(0.1,0), breaks =c(0,1,2,3,4,5)) +
+  scale_color_brewer("Functional Group",palette="Set2", labels=c("Detritivore", "Herbivore (chewing)", "Herbivore (sucking)", "Parasitoid", "Pollinator", "Predator", "Scavenger")) +
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))
+
+plot_scatter
+
+ggsave("plot_relative_biomass_scatter_gl.png", plot = plot_scatter_gl, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
 
 ```
 
 
+Proportional biomass: individual bar graphs
 ```{r}
 # Detritivores
 plot1 <- ggplot(arth_data) + 
@@ -476,4 +783,99 @@ plot7
 
 
 
+
+
+
+
+
+
+
+
+## Plot lm models
+```{r}
+# 
+# library(coefplot)
+# 
+# # richness - taxa
+# lme_rich_taxa <- lme(
+#   fixed = richness_taxa ~ type + year_restoration, 
+#   random = ~1|transect, 
+#   data = arth_data)
+# 
+# summary(lme_rich_taxa)
+# 
+# 
+# install.packages("coefplot2",
+#   repos="http://www.math.mcmaster.ca/bolker/R",
+#   type="source")
+# 
+# library(coefplot2)
+# 
+# coefplot2(lme_rich_taxa)
+# 
+# 
+# library(sjPlot)
+# plot_model(lme_rich_taxa)
+# 
+# library(broom.mixed)
+# dwplot(lme_rich_taxa)+geom_vline()
+# 
+# ######
+# 
+# 
+# des = model.matrix(formula(lme_rich_taxa)[-2], arth_data)
+# 
+# predvar = diag( des %*% vcov(lme_rich_taxa) %*% t(des) )
+# 
+# arth_data$predlme = predict(lme_rich_taxa, newdata = arth_data, level = 0)
+# 
+# arth_data$lower = with(arth_data, predlme - 2*sqrt(predvar) )
+# arth_data$upper = with(arth_data, predlme + 2*sqrt(predvar) )
+# 
+# library(ggplot2)
+# 
+# ggplot(arth_data, aes(x = year_restoration, y = richness_taxa, color = type) ) +
+#      geom_rug(sides = "b", size = 1) +
+#      geom_ribbon(data = arth_data, aes(y = NULL, ymin = lower, ymax = upper, 
+#                                         color = NULL, fill = type),
+#                  alpha = .15) +
+#           geom_line(data = arth_data, aes(y = predlme), size = .75)
+# 
+# #########
+# 
+# library(dotwhisker)
+# library(broom)
+# library(dplyr)
+# 
+# # draw a dot-and-whisker plot
+# lme_rich_taxa %>% 
+#   plot()
+# 
+# ######
+# 
+# library(coefplot)
+# 
+# plot1 <- 
+# coefplot(lme1, drop(_cons))
+# 
+# plot1
+# 
+# ## THIS IS IT
+# library(jtools)
+# plot_coefs(lme1, lme2, lme3)
+# plot_coefs(lme3)
+# 
+# 
+# 
+# #####
+# 
+# mod_wold <-lm.cluster(kg_perha_planted ~ intercropped + purchased_seed + inorg_perha_planted+ org_perha_planted + pest_perha_planted +  landscape_no + round + season + erosion_c, data = Wheat, cluster = "cluster")
+# 
+# mlm_plot_wheat <- 
+# coefplot(mod_wold$lm_res, title = '\n\nWheat ', ylab="", xlab = "Kg per HA Planted", color="#9c8dc3", predictors = c("intercropped", "erosion_c", "purchased_seed", "inorg_perha_planted", "org_perha_planted","pest_perha_planted"),  sort="alphabetical", newNames=c(erosion_cTRUE="Erosion Control", intercroppedTRUE = "Intercropped", purchased_seedTRUE = "Purchased Seed", inorg_perha_planted ="10s KGs of Inorganic Fertilizer", org_perha_planted = "100s KGs of Organic Fertilizer", pest_perha_planted = "10s KGs of Pesticide"))+
+#   theme_vsr()
+# 
+# mlm_plot_wheat
+
+```
 
