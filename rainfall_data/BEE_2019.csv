@@ -1,0 +1,15 @@
+"Time","BEE","",""
+"and","11.50","",""
+"Date","Rainfall (in.) ALERT transmitted","",""
+"Date and time","Total","Quality","Comments"
+00:00:00 10/01/2018,        0.94,      1,Sites:
+00:00:00 11/01/2018,        1.61,      1,BEE - Bee Canyon Lat:33.72688 Long:-117.708 Elev:1359ft
+00:00:00 12/01/2018,        1.50,      1, 
+00:00:00 01/01/2019,        4.13,      1,Variables:
+00:00:00 02/01/2019,        6.30,      1,11 - Rainfall (Inches)
+00:00:00 03/01/2019,        1.93,      1, 
+00:00:00 04/01/2019,        0.12,      1,Qualities:
+00:00:00 05/01/2019,        0.99,      1,1 - Good continuous records
+00:00:00 06/01/2019,        0.24,      1,255 - No data exists
+00:00:00 07/01/2019,        0.00,      1, 
+

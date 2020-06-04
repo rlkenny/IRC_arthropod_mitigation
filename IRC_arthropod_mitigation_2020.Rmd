@@ -118,33 +118,33 @@ write.csv(transects, "transects.csv")
 
 #Mixed effects model with year as random effect ###COME BACK TO
 ```{r}
-
-view(arth_data)
-
-# richness - taxa
-lme_rich_taxa <- lme(
-  fixed = richness_taxa ~ type + year_restoration, 
-  random = ~1|transect + ~1|year, 
-  data = arth_data)
-
-summary(lme_rich_taxa)
-
-# richness - ants
-lme_rich_ant <- lme(
-  fixed = richness_ant ~ type + year_restoration, 
-  random = ~1|transect, 
-  data = arth_data)
-
-summary(lme_rich_ant)
-
-
-# evenness - functional
-lme_even <- lme(
-  fixed = evenness_functional ~ type + year_restoration, 
-  random = ~1|transect, 
-  data = arth_data)
-
-summary(lme_even)
+# 
+# view(arth_data)
+# 
+# # richness - taxa
+# lme_rich_taxa <- lme(
+#   fixed = richness_taxa ~ type + year_restoration, 
+#   random = ~1|transect + ~1|year, 
+#   data = arth_data)
+# 
+# summary(lme_rich_taxa)
+# 
+# # richness - ants
+# lme_rich_ant <- lme(
+#   fixed = richness_ant ~ type + year_restoration, 
+#   random = ~1|transect, 
+#   data = arth_data)
+# 
+# summary(lme_rich_ant)
+# 
+# 
+# # evenness - functional
+# lme_even <- lme(
+#   fixed = evenness_functional ~ type + year_restoration, 
+#   random = ~1|transect, 
+#   data = arth_data)
+# 
+# summary(lme_even)
 
 ```
 
@@ -592,22 +592,22 @@ library(ggpubr)
 
 
 
-plot_scatter <- ggplot(arth_data_2, aes(x = year_restoration, y = proportional_biomass, color = functional_group)) + 
-  geom_point() + 
-  ggtitle("Title") +
-  geom_smooth(method = "lm", fill = NA) +
-  theme_classic() +
-  ggtitle("Changes in proportional biomass of arthropods over time") +
-  xlab("Year of restoration") +
-  ylab("Proportional biomass") +
-  ylim(0,1) +
-  scale_x_continuous(expand=c(0.1,0), breaks =c(0,1,2,3,4,5)) +
-  scale_color_brewer("Functional Group",palette="Set2", labels=c("Detritivore", "Herbivore (chewing)", "Herbivore (sucking)", "Parasitoid", "Pollinator", "Predator", "Scavenger")) +
-  theme(plot.title = element_text(face="bold", size = 11),
-        axis.title = element_text(size=8),
-        legend.title = element_text(size=8, face="bold"),
-        legend.text = element_text(size=8))+ 
-  geom_text(x = 25, y = 300, label = lm_eqn(df), parse = TRUE)
+# plot_scatter <- ggplot(arth_data_2, aes(x = year_restoration, y = proportional_biomass, color = functional_group)) + 
+#   geom_point() + 
+#   ggtitle("Title") +
+#   geom_smooth(method = "lm", fill = NA) +
+#   theme_classic() +
+#   ggtitle("Changes in proportional biomass of arthropods over time") +
+#   xlab("Year of restoration") +
+#   ylab("Proportional biomass") +
+#   ylim(0,1) +
+#   scale_x_continuous(expand=c(0.1,0), breaks =c(0,1,2,3,4,5)) +
+#   scale_color_brewer("Functional Group",palette="Set2", labels=c("Detritivore", "Herbivore (chewing)", "Herbivore (sucking)", "Parasitoid", "Pollinator", "Predator", "Scavenger")) +
+#   theme(plot.title = element_text(face="bold", size = 11),
+#         axis.title = element_text(size=8),
+#         legend.title = element_text(size=8, face="bold"),
+#         legend.text = element_text(size=8))+ 
+#   geom_text(x = 25, y = 300, label = lm_eqn(df), parse = TRUE)
 
 plot_scatter2 <- ggscatter(arth_data_2, x = "year_restoration", y = "proportional_biomass", color = "functional_group", add = "reg.line") + 
   ggtitle("Title") +
@@ -624,13 +624,88 @@ plot_scatter2 <- ggscatter(arth_data_2, x = "year_restoration", y = "proportiona
         legend.title = element_text(size=8, face="bold"),
         legend.text = element_text(size=8)) +
   facet_wrap(~functional_group) +
-  stat_cor(label.y = .9) 
+  stat_cor(label.y = .9) +
+  stat_regline_equation(label.y = .75) 
 
 plot_scatter2
 
 ggsave("plot_relative_biomass_scatter.png", plot = plot_scatter, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
 
+
 ```
+
+## Individual linear models prop biomass
+```{r}
+
+# All data
+lm_det <- lm(detritivores ~ year_restoration, data = arth_data)
+summary(lm_det)
+
+lm_hrbc <- lm(herb_chew ~ year_restoration, data = arth_data)
+summary(lm_hrbc)
+
+lm_hrbs <- lm(herb_suck ~ year_restoration, data = arth_data)
+summary(lm_hrbs)
+
+lm_par <- lm(parasitoid ~ year_restoration, data = arth_data)
+summary(lm_par)
+
+lm_pol <- lm(pollinator ~ year_restoration, data = arth_data)
+summary(lm_pol)
+
+lm_pred <- lm(predator ~ year_restoration, data = arth_data)
+summary(lm_pred)
+
+lm_scv <- lm(scavenger ~ year_restoration, data = arth_data)
+summary(lm_scv)
+
+# CSS
+lm_det_css <- lm(detritivores ~ year_restoration, data = arth_css)
+summary(lm_det_css)
+
+lm_hrbc_css <- lm(herb_chew ~ year_restoration, data = arth_css)
+summary(lm_hrbc_css)
+
+lm_hrbs_css <- lm(herb_suck ~ year_restoration, data = arth_css)
+summary(lm_hrbs_css)
+
+lm_par_css <- lm(parasitoid ~ year_restoration, data = arth_css)
+summary(lm_par_css)
+
+lm_pol_css <- lm(pollinator ~ year_restoration, data = arth_css)
+summary(lm_pol_css)
+
+lm_pred_css <- lm(predator ~ year_restoration, data = arth_css)
+summary(lm_pred_css)
+
+lm_scv_css <- lm(scavenger ~ year_restoration, data = arth_css)
+summary(lm_scv_css)
+
+# GL
+lm_det_gl <- lm(detritivores ~ year_restoration, data = arth_gl)
+summary(lm_det_gl)
+
+lm_hrbc_gl <- lm(herb_chew ~ year_restoration, data = arth_gl)
+summary(lm_hrbc_gl)
+
+lm_hrbs_gl <- lm(herb_suck ~ year_restoration, data = arth_gl)
+summary(lm_hrbs_gl)
+
+lm_par_gl <- lm(parasitoid ~ year_restoration, data = arth_gl)
+summary(lm_par_gl)
+
+lm_pol_gl <- lm(pollinator ~ year_restoration, data = arth_gl)
+summary(lm_pol_gl)
+
+lm_pred_gl <- lm(predator ~ year_restoration, data = arth_gl)
+summary(lm_pred_gl)
+
+lm_scv_gl <- lm(scavenger ~ year_restoration, data = arth_gl)
+summary(lm_scv_gl)
+
+
+```
+
 
 
 ## CSS Proportional biomass: Scatter plot
@@ -654,7 +729,7 @@ plot_scatter_css <- ggplot(arth_data_2css, aes(x = year_restoration, y = proport
         legend.title = element_text(size=8, face="bold"),
         legend.text = element_text(size=8))
 
-plot_scatter
+plot_scatter_css
 
 ggsave("plot_relative_biomass_scatter_css.png", plot = plot_scatter_css, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
 
@@ -681,7 +756,7 @@ plot_scatter_gl <- ggplot(arth_data_2gl, aes(x = year_restoration, y = proportio
         legend.title = element_text(size=8, face="bold"),
         legend.text = element_text(size=8))
 
-plot_scatter
+plot_scatter_gl
 
 ggsave("plot_relative_biomass_scatter_gl.png", plot = plot_scatter_gl, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
 

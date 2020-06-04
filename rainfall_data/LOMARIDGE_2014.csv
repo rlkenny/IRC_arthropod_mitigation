@@ -1,0 +1,16 @@
+"Time","LOMARIDGE","",""
+"and","11.50","",""
+"Date","Rainfall (in.) ALERT transmitted","",""
+"Date and time","Total","Quality","Comments"
+00:00:00 10/01/2013,        0.08,      1,Sites:
+00:00:00 11/01/2013,        0.12,    151,LOMARIDGE - Loma Ridge Lat:33.764979 Long:-117.746298 Elev:1304ft
+00:00:00 12/01/2013,        0.51,      1, 
+00:00:00 01/01/2014,        0.04,      1,Variables:
+00:00:00 02/01/2014,        1.65,      1,11 - Rainfall (Inches)
+00:00:00 03/01/2014,        0.08,      1, 
+00:00:00 04/01/2014,        0.36,      1,Qualities:
+00:00:00 05/01/2014,        0.00,      1,1 - Good continuous records
+00:00:00 06/01/2014,        0.00,      1,151 - Data Missing
+00:00:00 07/01/2014,        0.00,      1,255 - No data exists
+00:00:00 08/01/2014,        0.04,      1, 
+
