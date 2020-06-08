@@ -152,7 +152,7 @@ write.csv(transects, "transects.csv")
 ## CSS Linear models
 ```{r}
 
-#CSS
+#CSS Model 1
 
 # richness - taxa 
 lme_rich_taxa_css <- lme(
@@ -181,6 +181,66 @@ lme_even_css <- lme(
 summary(lme_even_css)
 
 
+#CSS Model 2
+
+# richness - taxa 
+lme_rich_taxa_css2 <- lme(
+  fixed = richness_taxa ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_rich_taxa_css2)
+
+
+# richness - ants 
+lme_rich_ant_css2 <- lme(
+  fixed = richness_ant ~ year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_rich_ant_css2)
+
+
+# evenness - functional
+lme_even_css2 <- lme(
+  fixed = evenness_functional ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_even_css2)
+
+
+
+#CSS Model 3
+
+# richness - taxa 
+lme_rich_taxa_css3 <- lme(
+  fixed = richness_taxa ~  year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_rich_taxa_css3)
+
+
+# richness - ants 
+lme_rich_ant_css3 <- lme(
+  fixed = richness_ant ~ year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_rich_ant_css3)
+
+
+# evenness - functional
+lme_even_css3 <- lme(
+  fixed = evenness_functional ~  year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_even_css3)
+
+
+
 mean(arth_css$richness_taxa)
 mean(arth_css$richness_ant)
 mean(arth_css$evenness_functional)
@@ -191,7 +251,7 @@ mean(arth_css$evenness_functional)
 ## GL Linear models
 ```{r}
 
-# GL
+# GL Model 1
 
 # richness - taxa 
 lme_rich_taxa_gl <- lme(
@@ -222,6 +282,65 @@ summary(lme_even_gl)
 mean(arth_gl$richness_taxa)
 mean(arth_gl$richness_ant)
 mean(arth_gl$evenness_functional)
+
+# GL Model 2
+
+# richness - taxa 
+lme_rich_taxa_gl2 <- lme(
+  fixed = richness_taxa ~ year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_rich_taxa_gl2)
+
+
+# richness - ants 
+lme_rich_ant_gl2 <- lme(
+  fixed = richness_ant ~ year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_rich_ant_gl2)
+
+
+# evenness - functional 
+lme_even_gl2 <- lme(
+  fixed = evenness_functional ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_even_gl2)
+
+
+# GL Model 3
+
+# richness - taxa 
+lme_rich_taxa_gl3 <- lme(
+  fixed = richness_taxa ~ year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_rich_taxa_gl3)
+
+
+# richness - ants 
+lme_rich_ant_gl3 <- lme(
+  fixed = richness_ant ~ year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_rich_ant_gl3)
+
+
+# evenness - functional 
+lme_even_gl3 <- lme(
+  fixed = evenness_functional ~  year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_even_gl3)
+
+View(arth_data)
 
 ```
 
@@ -707,6 +826,101 @@ summary(lm_scv_gl)
 ```
 
 
+## Individual linear models prop biomass 2
+```{r}
+
+# CSS2
+lm_det_css <- lm(detritivores ~ year, data = arth_css)
+summary(lm_det_css)
+
+lm_hrbc_css <- lm(herb_chew ~ year, data = arth_css)
+summary(lm_hrbc_css)
+
+lm_hrbs_css <- lm(herb_suck ~ year, data = arth_css)
+summary(lm_hrbs_css)
+
+lm_par_css <- lm(parasitoid ~ year, data = arth_css)
+summary(lm_par_css)
+
+lm_pol_css <- lm(pollinator ~ year, data = arth_css)
+summary(lm_pol_css)
+
+lm_pred_css <- lm(predator ~ year, data = arth_css)
+summary(lm_pred_css)
+
+lm_scv_css <- lm(scavenger ~ year, data = arth_css)
+summary(lm_scv_css)
+
+# GL2
+lm_det_gl <- lm(detritivores ~ year, data = arth_gl)
+summary(lm_det_gl)
+
+lm_hrbc_gl <- lm(herb_chew ~ year, data = arth_gl)
+summary(lm_hrbc_gl)
+
+lm_hrbs_gl <- lm(herb_suck ~ year, data = arth_gl)
+summary(lm_hrbs_gl)
+
+lm_par_gl <- lm(parasitoid ~ year, data = arth_gl)
+summary(lm_par_gl)
+
+lm_pol_gl <- lm(pollinator ~ year, data = arth_gl)
+summary(lm_pol_gl)
+
+lm_pred_gl <- lm(predator ~ year, data = arth_gl)
+summary(lm_pred_gl)
+
+lm_scv_gl <- lm(scavenger ~ year, data = arth_gl)
+summary(lm_scv_gl)
+
+
+# CSS3
+lm_det_css <- lm(detritivores ~ year + rainfall, data = arth_css)
+summary(lm_det_css)
+
+lm_hrbc_css <- lm(herb_chew ~ year + rainfall, data = arth_css)
+summary(lm_hrbc_css)
+
+lm_hrbs_css <- lm(herb_suck ~ year + rainfall, data = arth_css)
+summary(lm_hrbs_css)
+
+lm_par_css <- lm(parasitoid ~ year + rainfall, data = arth_css)
+summary(lm_par_css)
+
+lm_pol_css <- lm(pollinator ~ year + rainfall, data = arth_css)
+summary(lm_pol_css)
+
+lm_pred_css <- lm(predator ~ year + rainfall, data = arth_css)
+summary(lm_pred_css)
+
+lm_scv_css <- lm(scavenger ~ year + rainfall, data = arth_css)
+summary(lm_scv_css)
+
+# GL3
+lm_det_gl <- lm(detritivores ~ year + rainfall, data = arth_gl)
+summary(lm_det_gl)
+
+lm_hrbc_gl <- lm(herb_chew ~ year + rainfall, data = arth_gl)
+summary(lm_hrbc_gl)
+
+lm_hrbs_gl <- lm(herb_suck ~ year + rainfall, data = arth_gl)
+summary(lm_hrbs_gl)
+
+lm_par_gl <- lm(parasitoid ~ year + rainfall, data = arth_gl)
+summary(lm_par_gl)
+
+lm_pol_gl <- lm(pollinator ~ year + rainfall, data = arth_gl)
+summary(lm_pol_gl)
+
+lm_pred_gl <- lm(predator ~ year + rainfall, data = arth_gl)
+summary(lm_pred_gl)
+
+lm_scv_gl <- lm(scavenger ~ year + rainfall, data = arth_gl)
+summary(lm_scv_gl)
+
+
+```
+
 
 ## CSS Proportional biomass: Scatter plot
 ```{r}
@@ -859,98 +1073,4 @@ plot7
 
 
 
-
-
-
-
-
-
-
-## Plot lm models
-```{r}
-# 
-# library(coefplot)
-# 
-# # richness - taxa
-# lme_rich_taxa <- lme(
-#   fixed = richness_taxa ~ type + year_restoration, 
-#   random = ~1|transect, 
-#   data = arth_data)
-# 
-# summary(lme_rich_taxa)
-# 
-# 
-# install.packages("coefplot2",
-#   repos="http://www.math.mcmaster.ca/bolker/R",
-#   type="source")
-# 
-# library(coefplot2)
-# 
-# coefplot2(lme_rich_taxa)
-# 
-# 
-# library(sjPlot)
-# plot_model(lme_rich_taxa)
-# 
-# library(broom.mixed)
-# dwplot(lme_rich_taxa)+geom_vline()
-# 
-# ######
-# 
-# 
-# des = model.matrix(formula(lme_rich_taxa)[-2], arth_data)
-# 
-# predvar = diag( des %*% vcov(lme_rich_taxa) %*% t(des) )
-# 
-# arth_data$predlme = predict(lme_rich_taxa, newdata = arth_data, level = 0)
-# 
-# arth_data$lower = with(arth_data, predlme - 2*sqrt(predvar) )
-# arth_data$upper = with(arth_data, predlme + 2*sqrt(predvar) )
-# 
-# library(ggplot2)
-# 
-# ggplot(arth_data, aes(x = year_restoration, y = richness_taxa, color = type) ) +
-#      geom_rug(sides = "b", size = 1) +
-#      geom_ribbon(data = arth_data, aes(y = NULL, ymin = lower, ymax = upper, 
-#                                         color = NULL, fill = type),
-#                  alpha = .15) +
-#           geom_line(data = arth_data, aes(y = predlme), size = .75)
-# 
-# #########
-# 
-# library(dotwhisker)
-# library(broom)
-# library(dplyr)
-# 
-# # draw a dot-and-whisker plot
-# lme_rich_taxa %>% 
-#   plot()
-# 
-# ######
-# 
-# library(coefplot)
-# 
-# plot1 <- 
-# coefplot(lme1, drop(_cons))
-# 
-# plot1
-# 
-# ## THIS IS IT
-# library(jtools)
-# plot_coefs(lme1, lme2, lme3)
-# plot_coefs(lme3)
-# 
-# 
-# 
-# #####
-# 
-# mod_wold <-lm.cluster(kg_perha_planted ~ intercropped + purchased_seed + inorg_perha_planted+ org_perha_planted + pest_perha_planted +  landscape_no + round + season + erosion_c, data = Wheat, cluster = "cluster")
-# 
-# mlm_plot_wheat <- 
-# coefplot(mod_wold$lm_res, title = '\n\nWheat ', ylab="", xlab = "Kg per HA Planted", color="#9c8dc3", predictors = c("intercropped", "erosion_c", "purchased_seed", "inorg_perha_planted", "org_perha_planted","pest_perha_planted"),  sort="alphabetical", newNames=c(erosion_cTRUE="Erosion Control", intercroppedTRUE = "Intercropped", purchased_seedTRUE = "Purchased Seed", inorg_perha_planted ="10s KGs of Inorganic Fertilizer", org_perha_planted = "100s KGs of Organic Fertilizer", pest_perha_planted = "10s KGs of Pesticide"))+
-#   theme_vsr()
-# 
-# mlm_plot_wheat
-
-```
 

@@ -1,15 +1,14 @@
-"Time","HICKS_CYN","",""
-"and","11.50","",""
-"Date","Rainfall (in.) ALERT transmitted","",""
-"Date and time","Total","Quality","Comments"
-00:00:00 10/01/2018,        0.83,    151,Sites:
-00:00:00 11/01/2018,        1.65,      1,HICKS_CYN - Hicks Canyon Lat:33.74587983 Long:-117.70403 Elev:1083ft
-00:00:00 12/01/2018,        1.89,      1, 
-00:00:00 01/01/2019,        5.99,      1,Variables:
-00:00:00 02/01/2019,        9.53,      1,11 - Rainfall (Inches)
-00:00:00 03/01/2019,        2.13,      1, 
-00:00:00 04/01/2019,        0.08,      1,Qualities:
-00:00:00 05/01/2019,        1.46,      1,1 - Good continuous records
-00:00:00 06/01/2019,        0.16,      1,151 - Data Missing
-00:00:00 07/01/2019,        0.08,      1,255 - No data exists
-
+Time,HICKS_CYN,,
+and,11.5,,
+Date,Rainfall (in.) ALERT transmitted,,
+Date and time,Total,Quality,Comments
+10/1/2018 0:00,0.83,151,Sites:
+11/1/2018 0:00,1.65,1,HICKS_CYN - Hicks Canyon Lat:33.74587983 Long:-117.70403 Elev:1083ft
+12/1/2018 0:00,1.89,1, 
+1/1/2019 0:00,5.99,1,Variables:
+2/1/2019 0:00,9.53,1,11 - Rainfall (Inches)
+3/1/2019 0:00,2.13,1, 
+4/1/2019 0:00,0.08,1,Qualities:
+5/1/2019 0:00,1.46,1,1 - Good continuous records
+6/1/2019 0:00,0.16,1,151 - Data Missing
+,,,255 - No data exists

@@ -1,0 +1,15 @@
+"Time","HICKS_CYN","",""
+"and","11.50","",""
+"Date","Rainfall (in.) ALERT transmitted","",""
+"Date and time","Total","Quality","Comments"
+00:00:00 10/01/2011,        1.34,    255,Sites:
+00:00:00 11/01/2011,        1.74,      1,HICKS_CYN - Hicks Canyon Lat:33.74587983 Long:-117.70403 Elev:1083ft
+00:00:00 12/01/2011,        0.43,    151, 
+00:00:00 01/01/2012,        1.06,    151,Variables:
+00:00:00 02/01/2012,        0.98,    151,11 - Rainfall (Inches)
+00:00:00 03/01/2012,        2.25,    255, 
+00:00:00 04/01/2012,        1.38,    255,Qualities:
+00:00:00 05/01/2012,        0.27,    151,1 - Good continuous records
+00:00:00 06/01/2012,        0.00,      1,151 - Data Missing
+00:00:00 07/01/2012,        0.24,    255,255 - No data exists
+

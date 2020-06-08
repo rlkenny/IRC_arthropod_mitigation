@@ -1,0 +1,15 @@
+Time,BEE,,
+and,11.5,,
+Date,Rainfall (in.) ALERT transmitted,,
+Date and time,Total,Quality,Comments
+10/1/16 0:00,0.75,1,Sites:
+11/1/16 0:00,1.22,1,BEE - Bee Canyon Lat:33.72688 Long:-117.708 Elev:1359ft
+12/1/16 0:00,3.81,1, 
+1/1/17 0:00,6.1,1,Variables:
+2/1/17 0:00,3.26,1,11 - Rainfall (Inches)
+3/1/17 0:00,0.08,1, 
+4/1/17 0:00,0,1,Qualities:
+5/1/17 0:00,0.2,1,1 - Good continuous records
+6/1/17 0:00,0,255,255 - No data exists
+,,, 
+6/1/17 0:00,0.04,1,Hicks canyon data
