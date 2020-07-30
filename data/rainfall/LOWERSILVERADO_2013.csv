@@ -1,0 +1,14 @@
+Time,LOWERSILVERADO,,
+and,11.5,,
+Date,Rainfall (in.) ALERT transmitted,,
+Date and time,Total,Quality,Comments
+10/1/12 0:00,0.16,255,Sites:
+11/1/12 0:00,0.9,151,LOWERSILVERADO - Lower Silverado Canyon Lat:33.742967 Long:-117.659423 Elev:1104ft
+12/1/12 0:00,2.44,1, 
+1/1/13 0:00,7.99,151,Variables:
+2/1/13 0:00,0.43,151,11 - Rainfall (Inches)
+3/1/13 0:00,0.94,255, 
+4/1/13 0:00,0,255,Qualities:
+5/1/13 0:00,0.55,255,1 - Good continuous records
+6/1/13 0:00,0,1,151 - Data Missing
+,,,255 - No data exists

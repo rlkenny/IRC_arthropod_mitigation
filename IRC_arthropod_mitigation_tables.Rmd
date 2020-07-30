@@ -1,0 +1,650 @@
+---
+title: "IRC_arthropod_analysis_2020"
+author: "Rachel Kenny"
+date: "3/30/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Load libraries & data
+```{r load}
+
+# Load packages
+library(tidyverse)
+library(readxl)
+library(readr)
+library(janitor)
+library(nlme)
+library(stargazer)
+
+# Load raw arthropod data
+arth_data_raw <- read_xlsx("combined arthropod data.xlsx")
+
+# Load tidy arthropod data
+arth_data <- read_csv("IRC_restoration_arthropod_data.csv") %>% 
+  clean_names()
+
+arth_data$year <- as.factor(arth_data$year)
+
+# reference data
+arth_ref <- read_csv("IRC_restoration_arthropod_data_reference.csv") %>% 
+  clean_names()
+
+arth_ref <- read_csv("IRC_restoration_arthropod_data_reference.csv") %>% 
+  clean_names() 
+
+arth_ref_weedy <- read_csv("IRC_restoration_arthropod_data_reference.csv") %>% 
+  clean_names() %>% 
+  filter(type == "weedy")
+
+# Filter arthropod data from CSS (coastal sage scrub) habitat
+arth_css <- arth_data %>% 
+  filter(type == "CSS")
+
+# Filter arthropod data from GL (grassland) habitat
+arth_gl <- arth_data %>% 
+  filter(type == "GL")
+
+
+
+```
+
+#lme models CSS
+```{r}
+
+#CSS Model 1
+
+# richness - taxa 
+lme_rich_taxa_css <- lme(
+  fixed = richness_taxa ~  year_restoration, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_rich_taxa_css)
+r.squaredGLMM(lme_rich_taxa_css)
+
+# richness - taxa 2
+lme_rich_taxa_css2 <- lme(
+  fixed = richness_taxa ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_rich_taxa_css2)
+r.squaredGLMM(lme_rich_taxa_css2)
+
+# richness - taxa 3
+lme_rich_taxa_css3 <- lme(
+  fixed = richness_taxa ~  year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_rich_taxa_css3)
+
+stargazer(lme_rich_taxa_css, lme_rich_taxa_css2, lme_rich_taxa_css3, title="Richness (taxa) 3 models", align=TRUE, type="text")
+
+
+ggplot(aes(x=year, y=rainfall), data=arth_data)+
+  geom_point()
+
+
+tbl1
+
+# write.csv(tbl1, "tbl1.csv")
+
+#########
+
+# richness - ants 
+lme_rich_ant_css <- lme(
+  fixed = richness_ant ~ year_restoration, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_rich_ant_css)
+
+
+# richness - ants 2
+lme_rich_ant_css2 <- lme(
+  fixed = richness_ant ~ year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_rich_ant_css2)
+
+# richness - ants 3
+lme_rich_ant_css3 <- lme(
+  fixed = richness_ant ~ year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_rich_ant_css3)
+
+
+#####
+
+# evenness - functional
+lme_even_css <- lme(
+  fixed = evenness_functional ~  year_restoration, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_even_css)
+
+
+# evenness - functional 2
+lme_even_css2 <- lme(
+  fixed = evenness_functional ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_even_css2)
+
+
+# evenness - functional 3
+lme_even_css3 <- lme(
+  fixed = evenness_functional ~  year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_even_css3)
+
+
+```
+
+
+#lme models gl
+```{r}
+#gl Model 1
+
+
+
+# richness - taxa 
+lme_rich_taxa_gl <- lme(
+  fixed = richness_taxa ~  year_restoration, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_rich_taxa_gl)
+lme_rich_taxa_gl
+
+# richness - taxa 2
+lme_rich_taxa_gl2 <- lme(
+  fixed = richness_taxa ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_rich_taxa_gl2)
+
+# richness - taxa 3
+lme_rich_taxa_gl3 <- lme(
+  fixed = richness_taxa ~  year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+# richness - taxa 4
+lme_rich_taxa_gl4 <- lme(
+  fixed = richness_taxa ~  year_restoration + year + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_rich_taxa_gl3)
+
+stargazer(lme_rich_taxa_gl, lme_rich_taxa_gl2, lme_rich_taxa_gl3, lme_rich_taxa_gl4, title="Richness (taxa) 3 models", align=TRUE, type="text")
+
+tbl1
+
+library(broom)
+
+m1 <- tidy(lme_rich_taxa_gl) 
+m2 <- tidy(lme_rich_taxa_gl2)
+m3 <- tidy(lme_rich_taxa_gl3)
+# Note that tidy() from the broom package is used to convert each model to a data frame
+
+all_models <- bind_rows(
+    m1 %>% mutate(model = 1),
+    m2 %>% mutate(model = 2),
+    m3 %>% mutate(model = 3),
+    )
+
+all_models
+
+ols_table <- all_models %>%
+    select(-statistic, -p.value) %>%
+    mutate_each(funs(round(., 2)), -term) %>% 
+    gather(key, value, estimate:std.error) %>%
+    spread(model, value) 
+
+ols_table
+
+
+write.csv(tbl1, "tbl1.csv")
+##
+
+library(MuMIn)
+
+r.squaredGLMM(lme_rich_taxa_gl)
+r.squaredGLMM(lme_rich_taxa_gl2)
+r.squaredGLMM(lme_rich_taxa_gl3)
+r.squaredGLMM(lme_rich_taxa_gl4)
+
+
+stargazer(lme_rich_taxa_gl4, type = "text")
+#########
+
+ggplot(aes(x=year, y=richness_taxa), data=arth_ref_weedy)+
+  geom_point(aes(fill = transect))
+
+ggplot(aes(x=year, y=rainfall), data=arth_data)+
+  geom_point()
+
+```
+#messing around
+
+```{r}
+
+arth_data <- arth_data_raw %>% 
+  clean_names()
+
+lm_rich_taxa <- lm(richness_taxa ~  year_restoration, data = arth_css)
+summary(lm_rich_taxa)
+summary(lme_rich_taxa_css)
+
+lme_rich_taxa_css <- lme(
+  fixed = richness_taxa ~  year_restoration, 
+  random = ~1|transect, 
+  data = arth_css)
+
+lme_rich_taxa_css2 <- lme(
+  fixed = richness_taxa ~  year, 
+  random = ~1|transect, 
+  data = arth_css)
+
+lme_rich_taxa_css3 <- lme(
+  fixed = richness_taxa ~  year_restoration, 
+  random = list(~1|transect, ~1|year), 
+  data = arth_css)
+
+lme_rich_taxa_css4 <- lme(
+  fixed = richness_taxa ~  year_restoration + rainfall, 
+  random = list(~1|transect, ~1|year), 
+  data = arth_css)
+
+lme_rich_taxa_gl <- lme(
+  fixed = richness_taxa ~  year_restoration, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+lme_rich_taxa_gl2 <- lme(
+  fixed = richness_taxa ~  year, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+lme_rich_taxa_gl4 <- lme(
+  fixed = richness_taxa ~  year_restoration + rainfall, 
+  random = list(~1|transect, ~1|year), 
+  data = arth_gl)
+
+stargazer(lme_rich_taxa_css, lme_rich_taxa_css2, lme_rich_taxa_gl, lme_rich_taxa_gl2, type ="text")
+
+summary(lme_rich_taxa_css)
+# summary(lme_rich_taxa_css2)
+summary(lme_rich_taxa_css3)
+summary(lme_rich_taxa_css4)
+summary(lme_rich_taxa_gl4)
+
+
+r.squaredGLMM(lme_rich_taxa_css)
+r.squaredGLMM(lme_rich_taxa_css3)
+r.squaredGLMM(lme_rich_taxa_css4)
+r.squaredGLMM(lme_rich_taxa_gl)
+r.squaredGLMM(lme_rich_taxa_gl4)
+
+summary(lme_rich_taxa_gl)
+summary(lme_rich_taxa_gl2)
+
+```
+
+
+
+```{r}
+# richness - ants 
+lme_rich_ant_gl <- lme(
+  fixed = richness_ant ~ year_restoration, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_rich_ant_gl)
+
+
+# richness - ants 2
+lme_rich_ant_gl2 <- lme(
+  fixed = richness_ant ~ year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_rich_ant_gl2)
+
+# richness - ants 3
+lme_rich_ant_gl3 <- lme(
+  fixed = richness_ant ~ year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_rich_ant_gl3)
+
+
+#####
+
+# evenness - functional
+lme_even_gl <- lme(
+  fixed = evenness_functional ~  year_restoration, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_even_gl)
+
+
+# evenness - functional 2
+lme_even_gl2 <- lme(
+  fixed = evenness_functional ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_even_gl2)
+
+
+# evenness - functional 3
+lme_even_gl3 <- lme(
+  fixed = evenness_functional ~  year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_even_gl3)
+
+
+```
+
+
+
+```{r}
+
+# CSS model 1
+lm_det_css <- lm(detritivores ~ year_restoration, data = arth_css)
+summary(lm_det_css)
+
+lm_hrbc_css <- lm(herb_chew ~ year_restoration, data = arth_css)
+summary(lm_hrbc_css)
+
+lm_hrbs_css <- lm(herb_suck ~ year_restoration, data = arth_css)
+summary(lm_hrbs_css)
+
+lm_par_css <- lm(parasitoid ~ year_restoration, data = arth_css)
+summary(lm_par_css)
+
+lm_pol_css <- lm(pollinator ~ year_restoration, data = arth_css)
+summary(lm_pol_css)
+
+lm_pred_css <- lm(predator ~ year_restoration, data = arth_css)
+summary(lm_pred_css)
+
+lm_scv_css <- lm(scavenger ~ year_restoration, data = arth_css)
+summary(lm_scv_css)
+
+
+# CSS model2
+lm_det_css <- lm(detritivores ~ year, data = arth_css)
+summary(lm_det_css)
+
+lm_hrbc_css <- lm(herb_chew ~ year, data = arth_css)
+summary(lm_hrbc_css)
+
+lm_hrbs_css <- lm(herb_suck ~ year, data = arth_css)
+summary(lm_hrbs_css)
+
+lm_par_css <- lm(parasitoid ~ year, data = arth_css)
+summary(lm_par_css)
+
+lm_pol_css <- lm(pollinator ~ year, data = arth_css)
+summary(lm_pol_css)
+
+lm_pred_css <- lm(predator ~ year, data = arth_css)
+summary(lm_pred_css)
+
+lm_scv_css <- lm(scavenger ~ year, data = arth_css)
+summary(lm_scv_css)
+
+# CSS model3
+lm_det_css <- lm(detritivores ~ year + rainfall, data = arth_css)
+summary(lm_det_css)
+
+lm_hrbc_css <- lm(herb_chew ~ year + rainfall, data = arth_css)
+summary(lm_hrbc_css)
+
+lm_hrbs_css <- lm(herb_suck ~ year + rainfall, data = arth_css)
+summary(lm_hrbs_css)
+
+lm_par_css <- lm(parasitoid ~ year + rainfall, data = arth_css)
+summary(lm_par_css)
+
+lm_pol_css <- lm(pollinator ~ year + rainfall, data = arth_css)
+summary(lm_pol_css)
+
+lm_pred_css <- lm(predator ~ year + rainfall, data = arth_css)
+summary(lm_pred_css)
+
+lm_scv_css <- lm(scavenger ~ year + rainfall, data = arth_css)
+summary(lm_scv_css)
+
+```
+
+
+## Individual linear models prop biomass
+```{r}
+
+
+
+# GL
+lm_det_gl <- lm(detritivores ~ year_restoration, data = arth_gl)
+summary(lm_det_gl)
+
+lm_hrbc_gl <- lm(herb_chew ~ year_restoration, data = arth_gl)
+summary(lm_hrbc_gl)
+
+lm_hrbs_gl <- lm(herb_suck ~ year_restoration, data = arth_gl)
+summary(lm_hrbs_gl)
+
+lm_par_gl <- lm(parasitoid ~ year_restoration, data = arth_gl)
+summary(lm_par_gl)
+
+lm_pol_gl <- lm(pollinator ~ year_restoration, data = arth_gl)
+summary(lm_pol_gl)
+
+lm_pred_gl <- lm(predator ~ year_restoration, data = arth_gl)
+summary(lm_pred_gl)
+
+lm_scv_gl <- lm(scavenger ~ year_restoration, data = arth_gl)
+summary(lm_scv_gl)
+
+
+
+stargazer(lm_det_css, lm_hrbc_css, lm_hrbs_css, title="Results", align=TRUE, type="text")
+
+
+
+```
+
+
+## Individual linear models prop biomass 2
+```{r}
+
+# CSS2
+lm_det_css <- lm(detritivores ~ year, data = arth_css)
+summary(lm_det_css)
+
+lm_hrbc_css <- lm(herb_chew ~ year, data = arth_css)
+summary(lm_hrbc_css)
+
+lm_hrbs_css <- lm(herb_suck ~ year, data = arth_css)
+summary(lm_hrbs_css)
+
+lm_par_css <- lm(parasitoid ~ year, data = arth_css)
+summary(lm_par_css)
+
+lm_pol_css <- lm(pollinator ~ year, data = arth_css)
+summary(lm_pol_css)
+
+lm_pred_css <- lm(predator ~ year, data = arth_css)
+summary(lm_pred_css)
+
+lm_scv_css <- lm(scavenger ~ year, data = arth_css)
+summary(lm_scv_css)
+
+# GL2
+lm_det_gl <- lm(detritivores ~ year, data = arth_gl)
+summary(lm_det_gl)
+
+lm_hrbc_gl <- lm(herb_chew ~ year, data = arth_gl)
+summary(lm_hrbc_gl)
+
+lm_hrbs_gl <- lm(herb_suck ~ year, data = arth_gl)
+summary(lm_hrbs_gl)
+
+lm_par_gl <- lm(parasitoid ~ year, data = arth_gl)
+summary(lm_par_gl)
+
+lm_pol_gl <- lm(pollinator ~ year, data = arth_gl)
+summary(lm_pol_gl)
+
+lm_pred_gl <- lm(predator ~ year, data = arth_gl)
+summary(lm_pred_gl)
+
+lm_scv_gl <- lm(scavenger ~ year, data = arth_gl)
+summary(lm_scv_gl)
+
+
+
+
+# GL3
+lm_det_gl <- lm(detritivores ~ year + rainfall, data = arth_gl)
+summary(lm_det_gl)
+
+lm_hrbc_gl <- lm(herb_chew ~ year + rainfall, data = arth_gl)
+summary(lm_hrbc_gl)
+
+lm_hrbs_gl <- lm(herb_suck ~ year + rainfall, data = arth_gl)
+summary(lm_hrbs_gl)
+
+lm_par_gl <- lm(parasitoid ~ year + rainfall, data = arth_gl)
+summary(lm_par_gl)
+
+lm_pol_gl <- lm(pollinator ~ year + rainfall, data = arth_gl)
+summary(lm_pol_gl)
+
+lm_pred_gl <- lm(predator ~ year + rainfall, data = arth_gl)
+summary(lm_pred_gl)
+
+lm_scv_gl <- lm(scavenger ~ year + rainfall, data = arth_gl)
+summary(lm_scv_gl)
+
+
+```
+
+#rainfall
+```{r}
+
+lme_rich_taxa_css_rain <- lme(
+  fixed = richness_taxa ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_css)
+
+lme_rich_ant_css_rain <- lme(
+  fixed = richness_ant ~ year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_css)
+
+lme_even_css_rain <- lme(
+  fixed = evenness_functional ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_css)
+
+stargazer(lme_rich_taxa_css_rain, lme_rich_ant_css_rain, lme_even_css_rain, title="Richness (taxa) 3 models", align=TRUE, type="text")
+
+
+lme_rich_taxa_gl_rain <- lme(
+  fixed = richness_taxa ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+lme_rich_ant_gl_rain <- lme(
+  fixed = richness_ant ~ year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+lme_even_gl_rain <- lme(
+  fixed = evenness_functional ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+stargazer(lme_rich_taxa_gl_rain, lme_rich_ant_gl_rain, lme_even_gl_rain, title="Richness (taxa) 3 models", align=TRUE, type="text")
+
+```
+
+```{r}
+
+lm_det_css <- lm(detritivores ~ year_restoration + rainfall, data = arth_css)
+summary(lm_det_css)
+
+lm_hrbc_css <- lm(herb_chew ~ year_restoration + rainfall, data = arth_css)
+summary(lm_hrbc_css)
+
+lm_hrbs_css <- lm(herb_suck ~ year_restoration + rainfall, data = arth_css)
+summary(lm_hrbs_css)
+
+lm_par_css <- lm(parasitoid ~ year_restoration + rainfall, data = arth_css)
+summary(lm_par_css)
+
+lm_pol_css <- lm(pollinator ~ year_restoration + rainfall, data = arth_css)
+summary(lm_pol_css)
+
+lm_pred_css <- lm(predator ~ year_restoration + rainfall, data = arth_css)
+summary(lm_pred_css)
+
+lm_scv_css <- lm(scavenger ~ year_restoration + rainfall, data = arth_css)
+summary(lm_scv_css)
+
+####
+
+stargazer(lm_det_css, lm_hrbc_css, lm_hrbs_css, lm_par_css, lm_pol_css, lm_pred_css, lm_scv_css, title="Richness (taxa) 3 models", align=TRUE, type="text")
+
+####
+
+lm_det_gl <- lm(detritivores ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_det_gl)
+
+lm_hrbc_gl <- lm(herb_chew ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_hrbc_gl)
+
+lm_hrbs_gl <- lm(herb_suck ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_hrbs_gl)
+
+lm_par_gl <- lm(parasitoid ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_par_gl)
+
+lm_pol_gl <- lm(pollinator ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_pol_gl)
+
+lm_pred_gl <- lm(predator ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_pred_gl)
+
+lm_scv_gl <- lm(scavenger ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_scv_gl)
+
+####
+
+stargazer(lm_det_gl, lm_hrbc_gl, lm_hrbs_gl, lm_par_gl, lm_pol_gl, lm_pred_gl, lm_scv_gl, title="Richness (taxa) 3 models", align=TRUE, type="text")
+
+
+```
+

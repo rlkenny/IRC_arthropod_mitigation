@@ -18,6 +18,7 @@ library(readxl)
 library(readr)
 library(janitor)
 library(nlme)
+library(broom)
 
 # Load raw arthropod data
 arth_data_raw <- read_xlsx("combined arthropod data.xlsx")
@@ -53,6 +54,23 @@ arth_ref_gl <- arth_ref %>%
 
 ```
 
+```{r}
+## Check for normality
+
+hist(arth_data$evenness_functional)
+hist(arth_data$richness_taxa)
+hist(arth_data$richness_ant)
+
+hist(arth_css$evenness_functional)
+hist(arth_css$richness_taxa)
+hist(arth_css$richness_ant)
+
+hist(arth_gl$evenness_functional)
+hist(arth_gl$richness_taxa)
+hist(arth_gl$richness_ant)
+
+```
+
 
 ## Linear mixed-effects model
 ```{r}
@@ -62,6 +80,8 @@ arth_ref_gl <- arth_ref %>%
 library(lme4)
 
 lme1 = lmer(richness_taxa ~ type + year_restoration + (1|transect), data=arth_data)
+lme1
+summary(lme1)
 
 lme2 = lmer(richness_ant ~ type + year_restoration + (1|transect), data=arth_data)
 
@@ -103,6 +123,8 @@ summary(lme_even)
 mean(arth_data$richness_taxa)
 mean(arth_data$richness_ant)
 mean(arth_data$evenness_functional)
+
+install.packages("MuMIn")
 
 ```
 
@@ -822,6 +844,68 @@ summary(lm_pred_gl)
 lm_scv_gl <- lm(scavenger ~ year_restoration, data = arth_gl)
 summary(lm_scv_gl)
 
+library(knitr)
+
+tbl <- tidy(lm_scv_gl)
+tbl
+
+kable(tbl)
+
+
+library(stargazer)
+stargazer(lm_scv_gl, type = "text")
+
+library(broom)
+
+m1 <- tidy(lm_pol_gl) 
+m2 <- tidy(lm_pred_gl)
+m3 <- tidy(lm_scv_gl)
+# Note that tidy() from the broom package is used to convert each model to a data frame
+
+all_models <- bind_rows(
+    m1 %>% mutate(model = 1),
+    m2 %>% mutate(model = 2),
+    m3 %>% mutate(model = 3),
+    )
+
+all_models
+
+ols_table <- all_models %>%
+    select(-statistic, -p.value) %>%
+    mutate_each(funs(round(., 2)), -term) %>% 
+    gather(key, value, estimate:std.error) %>%
+    spread(model, value) 
+
+ols_table
+
+lm_det_css <- lm(detritivores ~ year_restoration, data = arth_css)
+summary(lm_det_css)
+
+lm_hrbc_css <- lm(herb_chew ~ year_restoration, data = arth_css)
+summary(lm_hrbc_css)
+
+lm_hrbs_css <- lm(herb_suck ~ year_restoration, data = arth_css)
+summary(lm_hrbs_css)
+
+lm_par_css <- lm(parasitoid ~ year_restoration, data = arth_css)
+summary(lm_par_css)
+
+lm_pol_css <- lm(pollinator ~ year_restoration, data = arth_css)
+summary(lm_pol_css)
+
+lm_pred_css <- lm(predator ~ year_restoration, data = arth_css)
+summary(lm_pred_css)
+
+lm_scv_css <- lm(scavenger ~ year_restoration, data = arth_css)
+summary(lm_scv_css)
+
+library(stargazer)
+
+stargazer(lm_det_css, lm_hrbc_css, lm_hrbs_css, title="Results", align=TRUE, type="text")
+
+
+
+str(lm_det_css)
 
 ```
 
