@@ -128,37 +128,6 @@ install.packages("MuMIn")
 
 ```
 
-## Mixed models w/ rainfall
-```{r}
-
-# richness - taxa
-lme_rich_taxa_rain <- lme(
-  fixed = richness_taxa ~ type + rainfall + year_restoration, 
-  random = ~1|transect, 
-  data = arth_data)
-
-summary(lme_rich_taxa_rain)
-
-# richness - ants
-lme_rich_ant_rain <- lme(
-  fixed = richness_ant ~ type + rainfall + year_restoration, 
-  random = ~1|transect, 
-  data = arth_data)
-
-summary(lme_rich_ant_rain)
-
-
-# evenness - functional
-lme_even_rain <- lme(
-  fixed = evenness_functional ~ type + rainfall + year_restoration, 
-  random = ~1|transect, 
-  data = arth_data)
-
-summary(lme_even_rain)
-
-```
-
-
 
 ```{r}
 
@@ -169,12 +138,35 @@ write.csv(transects, "transects.csv")
 ```
 
 
-## CSS means
+#Mixed effects model with year as random effect ###COME BACK TO
 ```{r}
-
-mean(arth_css$richness_taxa)
-mean(arth_css$richness_ant)
-mean(arth_css$evenness_functional)
+# 
+# view(arth_data)
+# 
+# # richness - taxa
+# lme_rich_taxa <- lme(
+#   fixed = richness_taxa ~ type + year_restoration, 
+#   random = ~1|transect + ~1|year, 
+#   data = arth_data)
+# 
+# summary(lme_rich_taxa)
+# 
+# # richness - ants
+# lme_rich_ant <- lme(
+#   fixed = richness_ant ~ type + year_restoration, 
+#   random = ~1|transect, 
+#   data = arth_data)
+# 
+# summary(lme_rich_ant)
+# 
+# 
+# # evenness - functional
+# lme_even <- lme(
+#   fixed = evenness_functional ~ type + year_restoration, 
+#   random = ~1|transect, 
+#   data = arth_data)
+# 
+# summary(lme_even)
 
 ```
 
@@ -211,7 +203,7 @@ summary(lme_even_css)
 
 ```
 
-## CSS Linear models w/ rainfall
+
 ```{r}
 #CSS Model with rain
 
@@ -242,20 +234,47 @@ lme_even_css2 <- lme(
 summary(lme_even_css2)
 
 
-```
 
-## GL means
-```{r}
+#CSS Model 3
 
-mean(arth_gl$richness_taxa)
-mean(arth_gl$richness_ant)
-mean(arth_gl$evenness_functional)
+# richness - taxa 
+lme_rich_taxa_css3 <- lme(
+  fixed = richness_taxa ~  year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_rich_taxa_css3)
+
+
+# richness - ants 
+lme_rich_ant_css3 <- lme(
+  fixed = richness_ant ~ year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_rich_ant_css3)
+
+
+# evenness - functional
+lme_even_css3 <- lme(
+  fixed = evenness_functional ~  year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_css)
+
+summary(lme_even_css3)
+
+
+
+mean(arth_css$richness_taxa)
+mean(arth_css$richness_ant)
+mean(arth_css$evenness_functional)
 
 ```
 
 
 ## GL Linear models
 ```{r}
+
 # GL Model 1
 
 # richness - taxa 
@@ -284,11 +303,10 @@ lme_even_gl <- lme(
 
 summary(lme_even_gl)
 
-```
+mean(arth_gl$richness_taxa)
+mean(arth_gl$richness_ant)
+mean(arth_gl$evenness_functional)
 
-
-## GL Linear models - rain
-```{r}
 # GL Model 2
 
 # richness - taxa 
@@ -316,6 +334,37 @@ lme_even_gl2 <- lme(
   data = arth_gl)
 
 summary(lme_even_gl2)
+
+
+# GL Model 3
+
+# richness - taxa 
+lme_rich_taxa_gl3 <- lme(
+  fixed = richness_taxa ~ year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_rich_taxa_gl3)
+
+
+# richness - ants 
+lme_rich_ant_gl3 <- lme(
+  fixed = richness_ant ~ year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_rich_ant_gl3)
+
+
+# evenness - functional 
+lme_even_gl3 <- lme(
+  fixed = evenness_functional ~  year_restoration + year, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+summary(lme_even_gl3)
+
+View(arth_data)
 
 ```
 
