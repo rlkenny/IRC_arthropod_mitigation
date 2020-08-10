@@ -52,6 +52,8 @@ arth_ref_css <- arth_ref %>%
 arth_ref_gl <- arth_ref %>% 
   filter(type == "GL" | type == "weedy" | type == "intact")
 
+View(arth_data)
+
 ```
 
 ```{r}
@@ -985,6 +987,105 @@ plot_scatter_css
 ggsave("plot_relative_biomass_scatter_css.png", plot = plot_scatter_css, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
 
 ```
+
+Rainfall actual biomass models
+```{r}
+
+library(stargazer)
+
+View(arth_css)
+
+library(jtools)
+library(huxtable)
+library(broom)
+
+
+# CSS rainfall models
+lm_det_css <- lm(vol_detritivores ~ year_restoration + rainfall, data = arth_css)
+summary(lm_det_css)
+summ(lm_det_css)
+export_summs(lm_det_css)
+
+
+lm_det_css <- lm(vol_detritivores ~ year_restoration + rainfall, data = arth_css)
+summary(lm_det_css)
+summ(lm_det_css)
+
+lm_hrbc_css <- lm(vol_herb_chew ~ year_restoration + rainfall, data = arth_css)
+summary(lm_hrbc_css)
+summ(lm_hrbc_css)
+
+lm_hrbs_css <- lm(vol_herb_suck ~ year_restoration + rainfall, data = arth_css)
+summary(lm_hrbs_css)
+summ(lm_hrbs_css)
+
+lm_par_css <- lm(vol_parasitoid ~ year_restoration + rainfall, data = arth_css)
+summary(lm_par_css)
+summ(lm_par_css)
+
+lm_pol_css <- lm(vol_pollinator ~ year_restoration + rainfall, data = arth_css)
+summary(lm_pol_css)
+summ(lm_pol_css)
+
+lm_pred_css <- lm(vol_predator ~ year_restoration + rainfall, data = arth_css)
+summary(lm_pred_css)
+summ(lm_pred_css)
+
+lm_scv_css <- lm(vol_scavenger ~ year_restoration + rainfall, data = arth_css)
+summary(lm_scv_css)
+summ(lm_scv_css)
+
+table(lm_det_css)
+
+install.packages("devtools")
+
+devtools::install_github("ewenharrison/finalfit")
+
+library(broom)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+
+tab_model(lm_det_css)
+
+```
+
+## GL actual biomass models
+```{r}
+# GL3
+lm_det_gl <- lm(vol_detritivores ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_det_gl)
+summ(lm_det_gl)
+
+lm_hrbc_gl <- lm(vol_herb_chew ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_hrbc_gl)
+summ(lm_hrbc_gl)
+
+lm_hrbs_gl <- lm(vol_herb_suck ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_hrbs_gl)
+summ(lm_hrbs_gl)
+
+lm_par_gl <- lm(vol_parasitoid ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_par_gl)
+summ(lm_par_gl)
+
+lm_pol_gl <- lm(vol_pollinator ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_pol_gl)
+summ(lm_pol_gl)
+
+lm_pred_gl <- lm(vol_predator ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_pred_gl)
+summ(lm_pred_gl)
+
+lm_scv_gl <- lm(vol_scavenger ~ year_restoration + rainfall, data = arth_gl)
+summary(lm_scv_gl)
+summ(lm_scv_gl)
+
+```
+
+```
+
+
 
 ## GL Proportional biomass: Scatter plot
 ```{r}
