@@ -19,12 +19,13 @@ library(readr)
 library(janitor)
 library(nlme)
 library(multcompView) # For displaying tukeys post testing in boxplots
+library(here)
 
 # Load raw arthropod data
-arth_data_raw <- read_xlsx("combined arthropod data.xlsx")
+arth_data_raw <- read_xlsx(here("data", "combined arthropod data.xlsx"))
 
 # Load tidy arthropod data
-arth_data <- read_csv("IRC_restoration_arthropod_data.csv") %>% 
+arth_data <- read_csv(here("data", "IRC_restoration_arthropod_data.csv")) %>% 
   clean_names()
 
 # Filter arthropod data from CSS (coastal sage scrub) habitat
@@ -38,7 +39,7 @@ arth_gl <- arth_data %>%
 ##############################
 
 # Load arthropod data with weedy & intact reference sites
-arth_ref <- read_csv("IRC_restoration_arthropod_data_reference.csv") %>% 
+arth_ref <- read_csv(here("data", "IRC_restoration_arthropod_data_reference.csv")) %>% 
   clean_names() %>% 
   filter(year_restoration != "0" & year_restoration != "1" & year_restoration != "3")
 
@@ -85,7 +86,6 @@ hist(arth_css$richness_ant)
 
 ```{r}
 
-hist(arth_ref)
 
 QuantileType1 <- function (v, p) {
  v = sort(v)
@@ -379,6 +379,68 @@ bar_fe_ref
 ggsave("bar_fe_ref.png", plot = bar_fe_ref, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
 
 ```
+
+
+
+### CSS
+### Taxa richness ~ Year of restoration
+```{r tky_tr}
+
+View(arth_data)
+
+#Isolate taxa richness
+css_tky1 <- arth_data %>% 
+  filter(type == "CSS") %>% 
+  select(year_restoration, richness_taxa)
+
+css_tky1$year_restoration <- as.factor(css_tky1$year_restoration)
+
+# Model the effect of habitat type on metric
+model1 =lm(css_tky1$richness_taxa ~ css_tky1$year_restoration)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of treatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'css_tky1$year_restoration', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "css_tky1$year_restoration")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','year_restoration')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration, data=css_tky1, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+css_tky_bar_tr <- ggplot(css_tky1, aes(x = year_restoration, y = richness_taxa)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = '\nYear of Restoration', y = 'Taxa richness (avg)') +
+  ggtitle(expression(atop(bold("Taxa richness ~ Year of Restoration"), atop(italic("Comparison of Year 5 mitigation data to reference sites"), "")))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration), stat = "boxplot")+
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration, y = richness_taxa, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete()
+
+css_tky_bar_tr
+
+ggsave("css_tky_bar_tr.png", plot = tky_bar_tr, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+
 
 
 ## Proportional biomass - ref
