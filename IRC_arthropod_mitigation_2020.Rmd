@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Load packages
 library(tidyverse)
+library(ggplot2)
 library(readxl)
 library(readr)
 library(janitor)
@@ -52,7 +53,7 @@ arth_ref_css <- arth_ref %>%
 arth_ref_gl <- arth_ref %>% 
   filter(type == "GL" | type == "weedy" | type == "intact")
 
-View(arth_data)
+# View(arth_data)
 
 ```
 
@@ -1083,7 +1084,7 @@ summ(lm_scv_gl)
 
 ```
 
-```
+
 
 
 
@@ -1208,7 +1209,207 @@ plot7
 
 ```
 
+## Plots of mixed effects models
+```{r}
+lme_rich_taxa_rain <- lme(
+  fixed = richness_taxa ~ type + rainfall + year_restoration, 
+  random = ~1|transect, 
+  data = arth_data)
 
+
+lme_rich_taxa_rain = lmer(richness_taxa ~ type + rainfall + year_restoration + (1|transect), data=arth_data)
+
+library(lmerTest)
+
+summ(lme_rich_taxa_rain)
+summary(lme_rich_taxa_rain)
+
+lme_rich_taxa_rain
+
+
+lme_rich_taxa_rain_css <- lme(
+  fixed = richness_taxa ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_css)
+
+
+lme_rich_taxa_rain_css = lmer(richness_taxa ~  year_restoration + rainfall + (1|transect), data=arth_css)
+
+summ(lme_rich_taxa_rain_css)
+
+
+lme_rich_taxa_rain_gl <- lme(
+  fixed = richness_taxa ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+lme_rich_taxa_rain_gl = lmer(richness_taxa ~  year_restoration + rainfall + (1|transect), data=arth_gl)
+
+summ(lme_rich_taxa_rain_gl)
+
+
+lme_rich_taxa_plot <- ggplot(arth_data)+
+geom_point(aes(x=year_restoration, y=richness_taxa))+
+  geom_abline(aes(intercept=`(Intercept)`, slope=DOY), as.data.frame(t(fixef(Model.1))))
+
+```
+
+
+```{r}
+
+lme_rich_taxa_rain <- lme(
+  fixed = richness_taxa ~ type + rainfall + year_restoration, 
+  random = ~1|transect, 
+  data = arth_data)
+
+
+lme_rich_taxa_rain = lmer(richness_taxa ~ type + rainfall + year_restoration + (1|transect), data=arth_data)
+
+library(lmerTest)
+
+summ(lme_rich_taxa_rain)
+summary(lme_rich_taxa_rain)
+
+lme_rich_taxa_rain
+
+
+lme_rich_taxa_rain_css <- lme(
+  fixed = richness_taxa ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_css)
+
+
+lme_rich_taxa_rain_css = lmer(richness_taxa ~  year_restoration + rainfall + (1|transect), data=arth_css)
+
+summ(lme_rich_taxa_rain_css)
+
+
+lme_rich_taxa_rain_gl <- lme(
+  fixed = richness_taxa ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+lme_rich_taxa_rain_gl = lmer(richness_taxa ~  year_restoration + rainfall + (1|transect), data=arth_gl)
+
+summ(lme_rich_taxa_rain_gl)
+
+
+lme_rich_taxa_plot <- ggplot(arth_data)+
+geom_point(aes(x=year_restoration, y=richness_taxa))+
+  geom_abline(aes(intercept=`(Intercept)`, slope=DOY), as.data.frame(t(fixef(Model.1))))
+
+
+```
+
+# GL CSS models
+```{r}
+
+#Both
+# ant richness
+lme_rich_ant = lmer(richness_ant ~  year_restoration + rainfall + type + (1|transect), data=arth_data)
+
+summ(lme_rich_ant)
+
+# functional evenness
+lme_even = lmer(evenness_functional ~  year_restoration + rainfall + type + (1|transect), data=arth_data)
+
+summ(lme_even)
+
+
+# CSS
+# richness - ants 
+lme_rich_ant_css <- lme(
+  fixed = richness_ant ~ year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_css)
+
+lme_rich_ant_css = lmer(richness_ant ~  year_restoration + rainfall + (1|transect), data=arth_css)
+
+summ(lme_rich_ant_css)
+
+
+# evenness - functional 
+lme_even_css <- lme(
+  fixed = evenness_functional ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_css)
+
+lme_even_css = lmer(evenness_functional ~  year_restoration + rainfall + (1|transect), data=arth_css)
+
+summ(lme_even_css)
+
+
+
+# GL
+# richness - ants 
+lme_rich_ant_gl <- lme(
+  fixed = richness_ant ~ year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+lme_rich_ant_gl = lmer(richness_ant ~  year_restoration + rainfall + (1|transect), data=arth_gl)
+
+summ(lme_rich_ant_gl)
+
+
+# evenness - functional 
+lme_even_gl <- lme(
+  fixed = evenness_functional ~  year_restoration + rainfall, 
+  random = ~1|transect, 
+  data = arth_gl)
+
+lme_even_gl = lmer(evenness_functional ~  year_restoration + rainfall + (1|transect), data=arth_gl)
+
+summ(lme_even_gl)
+
+
+
+```
+
+
+
+```{r}
+
+lme_rich_ant_plot <- ggplot(arth_data, aes(x = year_restoration, y = richness_ant, colour=type)) +
+  theme_classic() +
+  labs(x="Year of restoration",y="Ant richness")+
+  ggtitle("Ant richness ~ Year of restoration + Rainfall + Habitat + (1|transect)")+
+  geom_point() +
+  scale_color_manual(values = c("black", "#D95F02", "#1B9E77"), name = "Models by habitat type") +
+  scale_x_continuous(breaks=0:5)+
+  scale_y_continuous(breaks=seq(0, 10, by = 2))+
+  geom_jitter() +
+  geom_abline(aes(color = "Both habitat types", intercept=`(Intercept)`, slope=year_restoration), as.data.frame(t(fixef(lme_rich_ant))), lwd = 1) +
+  geom_abline(aes(color = "CSS", intercept=`(Intercept)`, slope=year_restoration), as.data.frame(t(fixef(lme_rich_ant_css))), lwd = 1) +
+  geom_abline(aes(color = "GL", intercept=`(Intercept)`, slope=year_restoration), as.data.frame(t(fixef(lme_rich_ant_gl))), lwd = 1)  
+
+
+lme_rich_ant_plot
+
+lme_even_plot <- ggplot(arth_data, aes(x = year_restoration, y = evenness_functional, colour=type)) +
+  theme_classic() +
+  labs(x="Year of restoration",y="Functional evenness")+
+  ggtitle("Functional evenness ~ Year of restoration + Rainfall + Habitat + (1|transect)")+
+  geom_point() +
+  scale_color_manual(values = c("black", "#D95F02", "#1B9E77"), name = "Models by habitat type") +
+  scale_x_continuous(breaks=0:5)+
+  scale_y_continuous()+
+  geom_jitter() +
+  geom_abline(aes(color = "Both habitat types", intercept=`(Intercept)`, slope=year_restoration), as.data.frame(t(fixef(lme_even))), lwd = 1) +
+  geom_abline(aes(color = "CSS", intercept=`(Intercept)`, slope=year_restoration), as.data.frame(t(fixef(lme_even_css))), lwd = 1) +
+  geom_abline(aes(color = "GL", intercept=`(Intercept)`, slope=year_restoration), as.data.frame(t(fixef(lme_even_gl))), lwd = 1)  
+
+
+lme_even_plot
+
+
+ggsave("lme_rich_ant_plot.png", plot = lme_rich_ant_plot, device = "png", width = 8, height = 5, units = c("in"), dpi = 300)
+
+ggsave("lme_even_plot.png", plot = lme_even_plot, device = "png", width = 8, height = 5, units = c("in"), dpi = 300)
+
+
+
+```
 
 
 
