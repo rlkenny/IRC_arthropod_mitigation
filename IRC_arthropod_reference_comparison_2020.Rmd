@@ -60,33 +60,6 @@ arth_ref_raw <- read_csv(here("data", "IRC_restoration_arthropod_data_reference.
 ```
 
 
-```{r}
-
-hist(arth_ref$parasitoid)
-
-hist(arth_ref$richness_taxa)
-
-hist(arth_ref$richness_ant)
-
-
-hist(arth_gl$parasitoid)
-
-hist(arth_gl$richness_taxa)
-
-hist(arth_gl$richness_ant)
-
-
-
-hist(arth_css$parasitoid)
-
-hist(arth_css$richness_taxa)
-
-hist(arth_css$richness_ant)
-
-
-```
-
-
 
 ```{r}
 
@@ -115,6 +88,35 @@ generate_label_df <- function(TUKEY, variable){
 }
 
 ```
+
+
+```{r}
+
+hist(arth_ref$parasitoid)
+
+hist(arth_ref$richness_taxa)
+
+hist(arth_ref$richness_ant)
+
+
+hist(arth_gl$parasitoid)
+
+hist(arth_gl$richness_taxa)
+
+hist(arth_gl$richness_ant)
+
+
+
+hist(arth_css$parasitoid)
+
+hist(arth_css$richness_taxa)
+
+hist(arth_css$richness_ant)
+
+
+```
+
+
 
 ## ANOVA and Tukey's Post Hoc testing 
 ### Taxa richness ~ Habitat type
