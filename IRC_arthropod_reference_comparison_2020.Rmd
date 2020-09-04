@@ -22,7 +22,7 @@ library(multcompView) # For displaying tukeys post testing in boxplots
 library(here)
 
 # Load raw arthropod data
-arth_data_raw <- read_xlsx(here("data", "combined arthropod data.xlsx"))
+arth_data_raw <- read_xlsx(here("data", "combined arthropod data_updated biomass.xlsx"))
 
 # Load tidy arthropod data
 arth_data <- read_csv(here("data", "IRC_restoration_arthropod_data.csv")) %>% 
@@ -53,19 +53,23 @@ arth_ref_css <- arth_ref %>%
 arth_ref_gl <- arth_ref %>% 
   filter(type == "GL" | type == "weedy" | type == "intact")
 
+# reference dataset 2
+arth_ref_raw <- read_csv(here("data", "IRC_restoration_arthropod_data_reference.csv")) %>% 
+  clean_names() 
+
 ```
 
 
 ```{r}
 
-hist(arth_ref$evenness_functional)
+hist(arth_ref$parasitoid)
 
 hist(arth_ref$richness_taxa)
 
 hist(arth_ref$richness_ant)
 
 
-hist(arth_gl$evenness_functional)
+hist(arth_gl$parasitoid)
 
 hist(arth_gl$richness_taxa)
 
@@ -73,7 +77,7 @@ hist(arth_gl$richness_ant)
 
 
 
-hist(arth_css$evenness_functional)
+hist(arth_css$parasitoid)
 
 hist(arth_css$richness_taxa)
 
@@ -130,7 +134,7 @@ summary(ANOVA1)
 # Tukey test to study each pair of treatment :
 TUKEY1 <- TukeyHSD(x=ANOVA1, 'arth_tky1$type', conf.level=0.95)
 
-labels1 <- generate_label_df(TUKEY1, "arth_tky1$type")#generate labels using function
+labels1 <- generate_label_df(TUKEY1, "arth_tky1$type") # generate labels using function
 
 labels1
 
@@ -145,6 +149,9 @@ labs_df1 <-merge(labels1,yvalue1) #merge dataframes
 
 # view(labs_df)
 
+fun_mean <- function(x){
+  return(data.frame(y=mean(x),label=mean(x,na.rm=T)))}
+
 tky_bar_tr <- ggplot(arth_tky1, aes(x = type, y = richness_taxa)) +
   geom_blank() +
   theme_bw() +
@@ -152,7 +159,8 @@ tky_bar_tr <- ggplot(arth_tky1, aes(x = type, y = richness_taxa)) +
   labs(x = '\nHabitat type', y = 'Taxa richness (avg)') +
   ggtitle(expression(atop(bold("Taxa richness ~ habitat type"), atop(italic("Comparison of Year 5 mitigation data to reference sites"), "")))) +
   theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
-  geom_boxplot(aes(fill=type), stat = "boxplot")+
+  geom_boxplot(aes(fill=type), stat = "boxplot") + 
+  stat_summary(fun.y=mean) +
   scale_fill_brewer(palette="Paired") +
   geom_text(data = labs_df1, aes(x = type, y = richness_taxa, label = Letters,vjust = -.5, hjust=-.5)) +
   theme(plot.title = element_text(vjust=-0.6))+
@@ -160,7 +168,7 @@ tky_bar_tr <- ggplot(arth_tky1, aes(x = type, y = richness_taxa)) +
 
 tky_bar_tr
 
-ggsave("tky_bar_tr.png", plot = tky_bar_tr, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+# ggsave("tky_bar_tr.png", plot = tky_bar_tr, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
 
 ```
 
@@ -219,10 +227,10 @@ ggsave("tky_bar_ar.png", plot = tky_bar_ar, device = "png", width = 7, height = 
 
 #Isolate functional evenness
 arth_tky3 <- arth_ref %>% 
-  select(type,evenness_functional)
+  select(type,parasitoid)
 
 # Model the effect of habitat type on metric
-model3 =lm(arth_tky3$evenness_functional ~ arth_tky3$type)
+model3 =lm(arth_tky3$parasitoid ~ arth_tky3$type)
 
 ANOVA3 =aov(model3)
 
@@ -244,7 +252,7 @@ labs_df3 <-merge(labels3,yvalue3) #merge dataframes
 #If necessary, reorder the items
 # labs_df3$Letters[1:4] <- c("a", "ab", "b", "ab")
 
-tky_bar_fe <- ggplot(arth_tky3, aes(x = type, y = evenness_functional)) +
+tky_bar_fe <- ggplot(arth_tky3, aes(x = type, y = parasitoid)) +
   geom_blank() +
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
@@ -253,7 +261,7 @@ tky_bar_fe <- ggplot(arth_tky3, aes(x = type, y = evenness_functional)) +
   theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
   geom_boxplot(aes(fill=type), stat = "boxplot")+
   scale_fill_brewer(palette="Paired") +
-  geom_text(data = labs_df3, aes(x = type, y = evenness_functional, label = Letters,vjust = -.5, hjust=-.5)) +
+  geom_text(data = labs_df3, aes(x = type, y = parasitoid, label = Letters,vjust = -.5, hjust=-.5)) +
   theme(plot.title = element_text(vjust=-0.6))+
   scale_x_discrete(labels = c("Coastal sage scrub\nyear 5", "Grassland\nyear 5", "Intact\nreference site", "Weedy\nreference site"))
 
@@ -347,7 +355,7 @@ ggsave("bar_ar_ref.png", plot = bar_ar_ref, device = "png", width = 5, height = 
 View(arth_ref)
 
 # What is the effect of the treatment on the value
-model=lm(arth_ref$evenness_functional ~ arth_ref$type)
+model=lm(arth_ref$parasitoid ~ arth_ref$type)
 
 ANOVA=aov(model)
  
@@ -361,7 +369,7 @@ tky_tr_ref
 
 # bar graph functional evenness ~ type
 bar_fe_ref <- ggplot(arth_ref) + 
-  geom_bar(aes(x = type, y = evenness_functional, fill=type), stat = "summary", fun.y = "mean") +
+  geom_bar(aes(x = type, y = parasitoid, fill=type), stat = "summary", fun.y = "mean") +
   theme_classic() +
   ggtitle("functional evenness ~ habitat type") +
   xlab("Habitat type") +
@@ -510,12 +518,12 @@ ggsave("css_tky_bar_ar.png", plot = css_tky_bar_ar, device = "png", width = 7, h
 #Isolate functional evenness
 css_tky1 <- arth_data %>% 
   filter(type == "CSS") %>% 
-  select(year_restoration, evenness_functional)
+  select(year_restoration, parasitoid)
 
 css_tky1$year_restoration <- as.factor(css_tky1$year_restoration)
 
 # Model the effect of habitat type on metric
-model1 =lm(css_tky1$evenness_functional ~ css_tky1$year_restoration)
+model1 =lm(css_tky1$parasitoid ~ css_tky1$year_restoration)
 
 ANOVA1 =aov(model1)
 
@@ -539,7 +547,7 @@ labs_df1 <-merge(labels1,yvalue1) #merge dataframes
 
 # view(labs_df)
 
-css_tky_bar_fe <- ggplot(css_tky1, aes(x = year_restoration, y = evenness_functional)) +
+css_tky_bar_fe <- ggplot(css_tky1, aes(x = year_restoration, y = parasitoid)) +
   geom_blank() +
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
@@ -548,13 +556,13 @@ css_tky_bar_fe <- ggplot(css_tky1, aes(x = year_restoration, y = evenness_functi
   theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
   geom_boxplot(aes(fill=year_restoration), stat = "boxplot")+
   scale_fill_brewer(palette="Paired") +
-  geom_text(data = labs_df1, aes(x = year_restoration, y = evenness_functional, label = Letters,vjust = -.5, hjust=-.5)) +
+  geom_text(data = labs_df1, aes(x = year_restoration, y = parasitoid, label = Letters,vjust = -.5, hjust=-.5)) +
   theme(plot.title = element_text(vjust=-0.6))+
   scale_x_discrete()
 
 css_tky_bar_fe
 
-ggsave("css_tky_bar_fe", plot = css_tky_bar_fe, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+# ggsave("css_tky_bar_fe", plot = css_tky_bar_fe, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
 
 ```
 
@@ -563,32 +571,37 @@ ggsave("css_tky_bar_fe", plot = css_tky_bar_fe, device = "png", width = 7, heigh
 ### Taxa richness ~ Year of restoration
 ```{r tky_tr}
 
-# View(arth_data)
+View(arth_ref_raw)
+View(gl_tky1)
+
+#Make new data frame
+gl_tky1 <- arth_ref_raw 
+
+# Add new column
+gl_tky1$year_restoration2 <- ifelse(gl_tky1$type == "GL", gl_tky1$year_restoration, gl_tky1$type)
 
 #Isolate taxa richness
-gl_tky1 <- arth_data %>% 
-  filter(type == "GL") %>% 
-  select(year_restoration, richness_taxa)
-
-gl_tky1$year_restoration <- as.factor(gl_tky1$year_restoration)
+gl_tky1 <- gl_tky1 %>% 
+  filter(type != "CSS") %>%
+  select(year_restoration2, richness_taxa)
 
 # Model the effect of habitat type on metric
-model1 =lm(gl_tky1$richness_taxa ~ gl_tky1$year_restoration)
+model1 =lm(gl_tky1$richness_taxa ~ gl_tky1$year_restoration2)
 
 ANOVA1 =aov(model1)
 
 summary(ANOVA1)
  
 # Tukey test to study each pair of treatment :
-TUKEY1 <- TukeyHSD(x=ANOVA1, 'gl_tky1$year_restoration', conf.level=0.95)
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'gl_tky1$year_restoration2', conf.level=0.95)
 
-labels1 <- generate_label_df(TUKEY1, "gl_tky1$year_restoration")#generate labels using function
+labels1 <- generate_label_df(TUKEY1, "gl_tky1$year_restoration2")#generate labels using function
 
 labels1
 
-names(labels1)<-c('Letters','year_restoration')#rename columns for merging
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
 
-yvalue1 <- aggregate(.~year_restoration, data=gl_tky1, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+yvalue1 <- aggregate(.~year_restoration2, data=gl_tky1, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
 
 labs_df1 <-merge(labels1,yvalue1) #merge dataframes
 
@@ -597,16 +610,16 @@ labs_df1 <-merge(labels1,yvalue1) #merge dataframes
 
 # view(labs_df)
 
-gl_tky_bar_tr <- ggplot(gl_tky1, aes(x = year_restoration, y = richness_taxa)) +
+gl_tky_bar_tr <- ggplot(gl_tky1, aes(x = year_restoration2, y = richness_taxa)) +
   geom_blank() +
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
   labs(x = '\nYear of Restoration', y = 'Taxa richness (avg)') +
   ggtitle(expression(atop(bold("Comparison of mean taxa richness over time within GL polygons"), ""))) +
   theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
-  geom_boxplot(aes(fill=year_restoration), stat = "boxplot")+
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot")+
   scale_fill_brewer(palette="Paired") +
-  geom_text(data = labs_df1, aes(x = year_restoration, y = richness_taxa, label = Letters,vjust = -.5, hjust=-.5)) +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = richness_taxa, label = Letters,vjust = -.5, hjust=-.5)) +
   theme(plot.title = element_text(vjust=-0.6))+
   scale_x_discrete()
 
@@ -683,12 +696,12 @@ ggsave("gl_tky_bar_ar.png", plot = gl_tky_bar_ar, device = "png", width = 7, hei
 #Isolate functional evenness
 gl_tky1 <- arth_data %>% 
   filter(type == "GL") %>% 
-  select(year_restoration, evenness_functional)
+  select(year_restoration, parasitoid)
 
 gl_tky1$year_restoration <- as.factor(gl_tky1$year_restoration)
 
 # Model the effect of habitat type on metric
-model1 =lm(gl_tky1$evenness_functional ~ gl_tky1$year_restoration)
+model1 =lm(gl_tky1$parasitoid ~ gl_tky1$year_restoration)
 
 ANOVA1 =aov(model1)
 
@@ -712,7 +725,7 @@ labs_df1 <-merge(labels1,yvalue1) #merge dataframes
 
 # view(labs_df)
 
-gl_tky_bar_fe <- ggplot(gl_tky1, aes(x = year_restoration, y = evenness_functional)) +
+gl_tky_bar_fe <- ggplot(gl_tky1, aes(x = year_restoration, y = parasitoid)) +
   geom_blank() +
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
@@ -721,13 +734,13 @@ gl_tky_bar_fe <- ggplot(gl_tky1, aes(x = year_restoration, y = evenness_function
   theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
   geom_boxplot(aes(fill=year_restoration), stat = "boxplot")+
   scale_fill_brewer(palette="Paired") +
-  geom_text(data = labs_df1, aes(x = year_restoration, y = evenness_functional, label = Letters,vjust = -.5, hjust=-.5)) +
+  geom_text(data = labs_df1, aes(x = year_restoration, y = parasitoid, label = Letters,vjust = -.5, hjust=-.5)) +
   theme(plot.title = element_text(vjust=-0.6))+
   scale_x_discrete()
 
 gl_tky_bar_fe
 
-ggsave("gl_tky_bar_fe", plot = gl_tky_bar_fe, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+# ggsave("gl_tky_bar_fe", plot = gl_tky_bar_fe, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
 
 ```
 
@@ -769,3 +782,1211 @@ ggsave("plot_ref_bio.png", plot = plot_ref_bio, device = "png", width = 5, heigh
 
 
 ```
+
+
+
+
+
+### GL
+### Taxa richness ~ Year of restoration
+```{r tky_tr}
+
+View(arth_ref_raw)
+View(gl_tky1)
+
+#Make new data frame
+gl_tky1 <- arth_ref_raw 
+
+# Add new column
+gl_tky1$year_restoration2 <- ifelse(gl_tky1$type == "GL", gl_tky1$year_restoration, gl_tky1$type)
+
+#Isolate taxa richness
+gl_tky1 <- gl_tky1 %>% 
+  filter(type != "CSS") %>%
+  select(year_restoration2, richness_taxa)
+
+# Model the effect of habitat type on metric
+model1 =lm(gl_tky1$richness_taxa ~ gl_tky1$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of treatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'gl_tky1$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "gl_tky1$year_restoration2")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=gl_tky1, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+gl_tky_bar_tr <- ggplot(gl_tky1, aes(x = year_restoration2, y = richness_taxa)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = '\nYear of Restoration', y = 'Taxa richness (avg)') +
+  ggtitle(expression(atop(bold("Comparison of mean taxa richness over time within GL polygons"), ""))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot") +
+  stat_summary(fun.y=mean, colour="gold", geom="point", 
+               shape=16, size=3,show_guide = FALSE) +
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = richness_taxa, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete()
+
+gl_tky_bar_tr
+
+ggsave("gl_tky_bar_tr.png", plot = gl_tky_bar_tr, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+### CSS
+### Taxa richness ~ Year of restoration
+```{r tky_tr}
+
+# View(arth_ref_raw)
+# View(css_tky1)
+
+#Make new data frame
+css_tky1 <- arth_ref_raw 
+
+# Add new column
+css_tky1$year_restoration2 <- ifelse(css_tky1$type == "CSS", css_tky1$year_restoration, css_tky1$type)
+
+#Isolate taxa richness
+css_tky1 <- css_tky1 %>% 
+  filter(type != "GL") %>%
+  select(year_restoration2, richness_taxa)
+
+# Model the effect of habitat type on metric
+model1 =lm(css_tky1$richness_taxa ~ css_tky1$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of treatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'css_tky1$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "css_tky1$year_restoration2")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=css_tky1, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+css_tky_bar_tr <- ggplot(css_tky1, aes(x = year_restoration2, y = richness_taxa)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = '\nYear of Restoration', y = 'Taxa richness (avg)') +
+  ggtitle(expression(atop(bold("Comparison of mean taxa richness over time within CSS polygons"), ""))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot") +
+  stat_summary(fun.y=mean, colour="gold", geom="point", 
+               shape=16, size=3,show_guide = FALSE) +
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = richness_taxa, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete()
+
+css_tky_bar_tr
+
+ggsave("css_tky_bar_tr.png", plot = css_tky_bar_tr, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+### GL
+### Ant species richness ~ Year of restoration
+```{r tky_ar}
+
+# View(arth_ref_raw)
+# View(gl_tky2)
+
+#Make new data frame
+gl_tky2 <- arth_ref_raw 
+
+# Add new column
+gl_tky2$year_restoration2 <- ifelse(gl_tky2$type == "GL", gl_tky2$year_restoration, gl_tky2$type)
+
+#Isolate ant species richness
+gl_tky2 <- gl_tky2 %>% 
+  filter(type != "CSS") %>%
+  select(year_restoration2, richness_ant)
+
+# Model the effect of habitat type on mearic
+model1 =lm(gl_tky2$richness_ant ~ gl_tky2$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of areatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'gl_tky2$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "gl_tky2$year_restoration2")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=gl_tky2, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+gl_tky_bar_ar <- ggplot(gl_tky2, aes(x = year_restoration2, y = richness_ant)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = '\nYear of Restoration', y = 'Ant species richness (avg)') +
+  ggtitle(expression(atop(bold("Comparison of mean ant species richness over time within GL polygons"), ""))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot") +
+  stat_summary(fun.y=mean, colour="gold", geom="point", 
+               shape=16, size=3,show_guide = FALSE) +
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = richness_ant, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete()
+
+gl_tky_bar_ar
+
+ggsave("gl_tky_bar_ar.png", plot = gl_tky_bar_ar, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+### CSS
+### Ant species richness ~ Year of restoration
+```{r tky_ar}
+
+# View(arth_ref_raw)
+# View(css_tky2)
+
+#Make new data frame
+css_tky2 <- arth_ref_raw 
+
+# Add new column
+css_tky2$year_restoration2 <- ifelse(css_tky2$type == "CSS", css_tky2$year_restoration, css_tky2$type)
+
+#Isolate ant species richness
+css_tky2 <- css_tky2 %>% 
+  filter(type != "GL") %>%
+  select(year_restoration2, richness_ant)
+
+# Model the effect of habitat type on mearic
+model1 =lm(css_tky2$richness_ant ~ css_tky2$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of areatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'css_tky2$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "css_tky2$year_restoration2")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=css_tky2, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+css_tky_bar_ar <- ggplot(css_tky2, aes(x = year_restoration2, y = richness_ant)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = '\nYear of Restoration', y = 'Ant species richness (avg)') +
+  ggtitle(expression(atop(bold("Comparison of mean ant species richness over time within CSS polygons"), ""))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot") +
+  stat_summary(fun.y=mean, colour="gold", geom="point", 
+               shape=16, size=3,show_guide = FALSE) +
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = richness_ant, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete()
+
+css_tky_bar_ar
+
+ggsave("css_tky_bar_ar.png", plot = css_tky_bar_ar, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+
+### GL
+### Functional evenness ~ Year of restoration
+```{r tky_fe}
+
+# View(arth_ref_raw)
+# View(gl_tky3)
+
+#Make new data frame
+gl_tky3 <- arth_ref_raw 
+
+# Add new column
+gl_tky3$year_restoration2 <- ifelse(gl_tky3$type == "GL", gl_tky3$year_restoration, gl_tky3$type)
+
+#Isolate functional evenness
+gl_tky3 <- gl_tky3 %>% 
+  filter(type != "CSS") %>%
+  select(year_restoration2, evenness_functional)
+
+# Model the effect of habitat type on metric
+model1 =lm(gl_tky3$evenness_functional ~ gl_tky3$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of areatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'gl_tky3$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "gl_tky3$year_restoration2")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=gl_tky3, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+gl_tky_bar_fe <- ggplot(gl_tky3, aes(x = year_restoration2, y = evenness_functional)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = '\nYear of Restoration', y = 'Functional evenness (avg)') +
+  ggtitle(expression(atop(bold("Comparison of mean functional evenness over time within GL polygons"), ""))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot") +
+  stat_summary(fun.y=mean, colour="gold", geom="point", 
+               shape=16, size=3,show_guide = FALSE) +
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = evenness_functional, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete()
+
+gl_tky_bar_fe
+
+ggsave("gl_tky_bar_fe.png", plot = gl_tky_bar_fe, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+### CSS
+### Functional evenness ~ Year of restoration
+```{r tky_fe}
+
+# View(arth_ref_raw)
+# View(tky_para)
+
+#Make new data frame
+tky_para <- arth_ref_raw 
+
+# Add new column
+tky_para$year_restoration2 <- ifelse(tky_para$type == "CSS", tky_para$year_restoration, tky_para$type)
+
+#Isolate functional evenness
+tky_para <- tky_para %>% 
+  filter(type != "GL") %>%
+  select(year_restoration2, evenness_functional)
+
+# Model the effect of habitat type on mearic
+model1 =lm(tky_para$evenness_functional ~ tky_para$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of areatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'tky_para$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "tky_para$year_restoration2")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=tky_para, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+means <- aggregate(evenness_functional ~  year_restoration2, tky_para, mean)
+
+View(means)
+
+means$evenness_functional <- round(means$evenness_functional, digits = 3)
+
+css_tky_bar_fe <- ggplot(tky_para, aes(x = year_restoration2, y = evenness_functional)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = '\nYear of Restoration', y = 'Functional evenness (avg)') +
+  ggtitle(expression(atop(bold("Comparison of mean functional evenness over time within CSS polygons"), ""))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot") +
+  stat_summary(fun.y=mean, colour="gold", geom="point", 
+               shape=16, size=3,show_guide = FALSE) +
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = evenness_functional, label = Letters,vjust = -1, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6)) +
+  scale_x_discrete() 
+  
+
+css_tky_bar_fe
+
+mean(tky_para$evenness_functional)
+
+View(tky_para)
+
+tky_para2 <- aggregate(tky_para,list(tky_para$year_restoration2), mean, na.rm=TRUE)
+
+View(tky_para2)
+
+colnames(diversity2)[1] <- "polygon_id"
+
+ggsave("css_tky_bar_fe.png", plot = css_tky_bar_fe, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+## Robert - box plots
+
+## CSS Parasitoid box plot
+```{r tky}
+
+# View(arth_ref_raw)
+# View(tky_para_css)
+
+#Make new data frame
+tky_para_css <- arth_ref_raw 
+
+# Add new column
+tky_para_css$year_restoration2 <- ifelse(tky_para_css$type == "CSS", tky_para_css$year_restoration, tky_para_css$type)
+
+#Isolate parasitoid proportional biomass
+tky_para_css <- tky_para_css %>% 
+  filter(type != "GL") %>%
+  select(year_restoration2, parasitoid)
+
+# Model the effect of habitat type on mearic
+model1 =lm(tky_para_css$parasitoid ~ tky_para_css$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of areatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'tky_para_css$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "tky_para_css$year_restoration2")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=tky_para_css, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+tky_bar_para_css <- ggplot(tky_para_css, aes(x = year_restoration2, y = parasitoid)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(hjust=0, size = 10),
+        axis.title = element_text(size = 9)) +
+  labs(x = '\nYear of Restoration', y = 'Parasitoid proportional biomass') +
+  ggtitle(expression(atop(bold("Comparison of mean parasitoid proportional biomass over time within CSS polygons"), ""))) +
+  theme(plot.title = element_text(hjust = 0, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot")+
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = parasitoid, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete()
+
+tky_bar_para_css
+
+ggsave("tky_bar_para_css.png", plot = tky_bar_para_css, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+## GL Parasitoid box plot
+```{r tky}
+
+# View(arth_ref_raw)
+# View(tky_para_gl)
+
+#Make new data frame
+tky_para_gl <- arth_ref_raw 
+
+# Add new column
+tky_para_gl$year_restoration2 <- ifelse(tky_para_gl$type == "GL", tky_para_gl$year_restoration, tky_para_gl$type)
+
+#Isolate parasitoid proportional biomass
+tky_para_gl <- tky_para_gl %>% 
+  filter(type != "CSS") %>%
+  select(year_restoration2, parasitoid)
+
+# Model the effect of habitat type on mearic
+model1 =lm(tky_para_gl$parasitoid ~ tky_para_gl$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of areatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'tky_para_gl$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "tky_para_gl$year_restoration2")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=tky_para_gl, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+tky_bar_para_gl <- ggplot(tky_para_gl, aes(x = year_restoration2, y = parasitoid)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(hjust = 0, size = 10),
+        axis.title = element_text(size = 9)) +
+  labs(x = '\nYear of Restoration', y = 'Parasitoid proportional biomass') +
+  ggtitle(expression(atop(bold("Comparison of mean parasitoid proportional biomass over time within GL polygons"), ""))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot")+
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = parasitoid, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete()
+
+tky_bar_para_gl
+
+ggsave("tky_bar_para_gl.png", plot = tky_bar_para_gl, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+## CSS Herbivore (chewing) box plot
+```{r tky}
+
+# View(arth_ref_raw)
+# View(tky_herb_c_css)
+
+#Make new data frame
+tky_herb_c_css <- arth_ref_raw 
+
+# Add new column
+tky_herb_c_css$year_restoration2 <- ifelse(tky_herb_c_css$type == "CSS", tky_herb_c_css$year_restoration, tky_herb_c_css$type)
+
+#Isolate herbivore (chewing) proportional biomass
+tky_herb_c_css <- tky_herb_c_css %>% 
+  filter(type != "GL") %>%
+  select(year_restoration2, herb_chew)
+
+# Model the effect of habitat type on mearic
+model1 =lm(tky_herb_c_css$herb_chew ~ tky_herb_c_css$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of areatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'tky_herb_c_css$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "tky_herb_c_css$year_restoration2")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=tky_herb_c_css, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+tky_bar_herb_c_css <- ggplot(tky_herb_c_css, aes(x = year_restoration2, y = herb_chew)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(hjust=0, size = 10),
+        axis.title = element_text(size = 9)) +
+  labs(x = '\nYear of Restoration', y = 'Herbivore (chewing) proportional biomass') +
+  ggtitle(expression(atop(bold("Comparison of mean herbivore (chewing) proportional biomass over time within CSS polygons"), ""))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot")+
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = herb_chew, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete()
+
+tky_bar_herb_c_css
+
+ggsave("tky_bar_herb_c_css.png", plot = tky_bar_herb_c_css, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+## GL Herbivore (chewing) box plot
+```{r tky}
+
+# View(arth_ref_raw)
+# View(tky_herb_c_gl)
+
+#Make new data frame
+tky_herb_c_gl <- arth_ref_raw 
+
+# Add new column
+tky_herb_c_gl$year_restoration2 <- ifelse(tky_herb_c_gl$type == "GL", tky_herb_c_gl$year_restoration, tky_herb_c_gl$type)
+
+#Isolate herbivore (chewing) proportional biomass
+tky_herb_c_gl <- tky_herb_c_gl %>% 
+  filter(type != "CSS") %>%
+  select(year_restoration2, herb_chew)
+
+# Model the effect of habitat type on mearic
+model1 =lm(tky_herb_c_gl$herb_chew ~ tky_herb_c_gl$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of areatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'tky_herb_c_gl$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "tky_herb_c_gl$year_restoration2")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=tky_herb_c_gl, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+tky_bar_herb_c_gl <- ggplot(tky_herb_c_gl, aes(x = year_restoration2, y = herb_chew)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(hjust=0, size = 10),
+        axis.title = element_text(size = 9)) +
+  labs(x = '\nYear of Restoration', y = 'Herbivore (chewing) proportional biomass') +
+  ggtitle(expression(atop(bold("Comparison of mean herbivore (chewing) proportional biomass over time within GL polygons"), ""))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot")+
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = herb_chew, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete()
+
+tky_bar_herb_c_gl
+
+ggsave("tky_bar_herb_c_gl.png", plot = tky_bar_herb_c_gl, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+## CSS Scavenger box plot
+```{r tky}
+
+# View(arth_ref_raw)
+# View(tky_scav_css)
+
+#Make new data frame
+tky_scav_css <- arth_ref_raw 
+
+# Add new column
+tky_scav_css$year_restoration2 <- ifelse(tky_scav_css$type == "CSS", tky_scav_css$year_restoration, tky_scav_css$type)
+
+#Isolate scavenger proportional biomass
+tky_scav_css <- tky_scav_css %>% 
+  filter(type != "GL") %>%
+  select(year_restoration2, scavenger)
+
+# Model the effect of habitat type on mearic
+model1 =lm(tky_scav_css$scavenger ~ tky_scav_css$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of areatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'tky_scav_css$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "tky_scav_css$year_restoration2")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=tky_scav_css, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+tky_bar_scav_css <- ggplot(tky_scav_css, aes(x = year_restoration2, y = scavenger)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(hjust=0, size = 10),
+        axis.title = element_text(size = 9)) +
+  labs(x = '\nYear of Restoration', y = 'Scavenger proportional biomass') +
+  ggtitle(expression(atop(bold("Comparison of mean scavenger proportional biomass over time within CSS polygons"), ""))) +
+  theme(plot.title = element_text(hjust = 0, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot")+
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = scavenger, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete()
+
+tky_bar_scav_css
+
+ggsave("tky_bar_scav_css.png", plot = tky_bar_scav_css, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+## GL Scavenger box plot
+```{r tky}
+
+# View(arth_ref_raw)
+# View(tky_scav_gl)
+
+#Make new data frame
+tky_scav_gl <- arth_ref_raw 
+
+# Add new column
+tky_scav_gl$year_restoration2 <- ifelse(tky_scav_gl$type == "GL", tky_scav_gl$year_restoration, tky_scav_gl$type)
+
+#Isolate scavenger proportional biomass
+tky_scav_gl <- tky_scav_gl %>% 
+  filter(type != "CSS") %>%
+  select(year_restoration2, scavenger)
+
+# Model the effect of habitat type on mearic
+model1 =lm(tky_scav_gl$scavenger ~ tky_scav_gl$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of areatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'tky_scav_gl$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "tky_scav_gl$year_restoration2")#generate labels using function
+
+labels1
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=tky_scav_gl, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+tky_bar_scav_gl <- ggplot(tky_scav_gl, aes(x = year_restoration2, y = scavenger)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(hjust = 0, size = 10),
+        axis.title = element_text(size = 9)) +
+  labs(x = '\nYear of Restoration', y = 'Scavenger proportional biomass') +
+  ggtitle(expression(atop(bold("Comparison of mean scavenger proportional biomass over time within GL polygons"), ""))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot")+
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = scavenger, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete()
+
+tky_bar_scav_gl
+
+ggsave("tky_bar_scav_gl.png", plot = tky_bar_scav_gl, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+## Total biomass comparison
+```{r tky}
+
+# View(arth_ref_raw)
+# View(tky_total_bio)
+
+#Make new data frame
+tky_total_bio <- arth_ref_raw 
+
+# Add new column
+tky_total_bio$year_restoration2 <- ifelse(tky_total_bio$type == "GL" | tky_total_bio$type == "CSS", tky_total_bio$year_restoration, tky_total_bio$type)
+
+#Isolate total biomass
+tky_total_bio <- tky_total_bio %>% 
+  select(year_restoration2, vol_total)
+
+# View(tky_total_bio)
+
+# Model the effect of habitat type on mearic
+model1 =lm(tky_total_bio$vol_total ~ tky_total_bio$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of areatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'tky_total_bio$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "tky_total_bio$year_restoration2")#generate labels using function
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=tky_total_bio, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+## WITH OUTLIERS
+tky_bar_total_bio <- ggplot(tky_total_bio, aes(x = year_restoration2, y = vol_total)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  labs(x = '\nYear of Restoration', y = 'Total biomass') +
+  ggtitle(expression(atop(bold("Comparison of mean total biomass over time and between reference sites"), ""))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), 
+               stat = "boxplot") +
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = vol_total, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete() 
+
+## WITHOUT OUTLIERS
+tky_bar_total_bio <- ggplot(tky_total_bio, aes(x = year_restoration2, y = vol_total)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  labs(x = '\nYear of Restoration', y = 'Total biomass') +
+  ggtitle(expression(atop(bold("Comparison of mean total biomass over time and between reference sites"), ""))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), 
+               stat = "boxplot",
+               outlier.shape = NA) +
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = vol_total, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete() +
+  scale_y_continuous(breaks=seq(0, 1250, 250), limits=c(0, 1250))
+
+  # scale_y_continuous(limits = quantile(tky_total_bio$vol_total, c(0.1, 0.9)))
+
+tky_bar_total_bio
+
+ggsave("tky_bar_total_bio.png", plot = tky_bar_total_bio, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+```
+
+
+## GL: Total biomass comparison
+```{r tky}
+
+# View(arth_ref_raw)
+# View(tky_total_gl)
+
+#Make new data frame
+tky_total_gl <- arth_ref_raw 
+
+# Add new column
+tky_total_gl$year_restoration2 <- ifelse(tky_total_gl$type == "GL", tky_total_gl$year_restoration, tky_total_gl$type)
+
+#Isolate total biomass
+tky_total_gl <- tky_total_gl %>% 
+  filter(type != "CSS")%>% 
+  select(year_restoration2, vol_total)
+
+# View(tky_total_gl)
+
+# Model the effect of habitat type on mearic
+model1 =lm(tky_total_gl$vol_total ~ tky_total_gl$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of areatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'tky_total_gl$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "tky_total_gl$year_restoration2")#generate labels using function
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=tky_total_gl, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# View(labs_df1)
+
+## WITH OUTLIERS
+tky_bar_total_gl <- ggplot(tky_total_gl, aes(x = year_restoration2, y = vol_total)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  labs(x = '\nYear of Restoration', y = 'Total biomass') +
+  ggtitle(expression(atop(bold("Comparison of mean total biomass over time in GL polygons")))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), 
+               stat = "boxplot") +
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = vol_total, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete() 
+
+## WITHOUT OUTLIERS
+tky_bar_total_gl_lims <- ggplot(tky_total_gl, aes(x = year_restoration2, y = vol_total)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  labs(x = '\nYear of Restoration', y = 'Total biomass') +
+  ggtitle(expression(atop(bold("Comparison of mean total biomass over time in GL polygons")))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), 
+               stat = "boxplot",
+               outlier.shape = NA) +
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = vol_total, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete() +
+  scale_y_continuous(breaks=seq(0, 1250, 250), limits=c(0, 1250))
+
+  # scale_y_continuous(limits = quantile(tky_total_gl$vol_total, c(0.1, 0.9)))
+
+tky_bar_total_gl
+tky_bar_total_gl_lims
+
+ggsave("tky_bar_total_gl.png", plot = tky_bar_total_gl, device = "png", width = 7, height = 8, units = c("in"), dpi = 300)
+
+ggsave("tky_bar_total_gl_lims.png", plot = tky_bar_total_gl_lims, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+
+```
+
+
+## CSS: Total biomass comparison
+```{r tky}
+
+# View(arth_ref_raw)
+# View(tky_total_css)
+
+#Make new data frame
+tky_total_css <- arth_ref_raw 
+
+# Add new column
+tky_total_css$year_restoration2 <- ifelse(tky_total_css$type == "CSS", tky_total_css$year_restoration, tky_total_css$type)
+
+#Isolate total biomass
+tky_total_css <- tky_total_css %>% 
+  filter(type != "GL")%>% 
+  select(year_restoration2, vol_total)
+
+# View(tky_total_css)
+
+# Model the effect of habitat type on mearic
+model1 =lm(tky_total_css$vol_total ~ tky_total_css$year_restoration2)
+
+ANOVA1 =aov(model1)
+
+summary(ANOVA1)
+ 
+# Tukey test to study each pair of areatment :
+TUKEY1 <- TukeyHSD(x=ANOVA1, 'tky_total_css$year_restoration2', conf.level=0.95)
+
+labels1 <- generate_label_df(TUKEY1, "tky_total_css$year_restoration2")#generate labels using function
+
+names(labels1)<-c('Letters','year_restoration2')#rename columns for merging
+
+yvalue1 <- aggregate(.~year_restoration2, data=tky_total_css, FUN = function(i) quantile(i, probs = 0.75, na.rm = T)) # obtain letter position for y axis using means
+
+labs_df1 <-merge(labels1,yvalue1) #merge dataframes
+
+#If necessary, reorder the items
+# labs_df1$Letters[1:4] <- c("a", "ab", "b", "b")
+
+# view(labs_df)
+
+## WITH OUTLIERS
+tky_bar_total_css <- ggplot(tky_total_css, aes(x = year_restoration2, y = vol_total)) +
+  geom_bar(aes(fill=year_restoration2)) +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  labs(x = '\nYear of Restoration', y = 'Total biomass') +
+  ggtitle(expression(atop(bold("Comparison of mean total biomass over time in CSS polygons")))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none")  +
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = vol_total, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete() 
+
+## WITHOUT OUTLIERS
+tky_bar_total_css_lims <- ggplot(tky_total_css, aes(x = year_restoration2, y = vol_total)) +
+  geom_blank() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  labs(x = '\nYear of Restoration', y = 'Total biomass') +
+  ggtitle(expression(atop(bold("Comparison of mean total biomass over time in CSS polygons")))) +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), 
+               stat = "boxplot",
+               outlier.shape = NA) +
+  scale_fill_brewer(palette="Paired") +
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = vol_total, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete() +
+  scale_y_continuous(breaks=seq(0, 1250, 250), limits=c(0, 1250))
+
+  # scale_y_continuous(limits = quantile(tky_total_css$vol_total, c(0.1, 0.9)))
+
+tky_bar_total_css
+tky_bar_total_css_lims
+
+# ggsave("tky_bar_total_css.png", plot = tky_bar_total_css, device = "png", width = 7, height = 8, units = c("in"), dpi = 300)
+
+# ggsave("tky_bar_total_css_lims.png", plot = tky_bar_total_css_lims, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+
+
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE))
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- rename(data_sum, c("mean" = varname))
+ return(data_sum)
+}
+
+
+df2 <- data_summary(tky_total_css, varname="vol_total",
+                    groupnames=c("year_restoration2"))
+# Convert dose to a factor variable
+df2$year_restoration2=as.factor(df2$year_restoration2)
+head(df2)
+
+View(df2)
+
+# df1 <- tky_total_css %>%
+#   group_by(year_restoration2) %>%
+#   summarise(
+#     sd = sd(vol_total, na.rm = TRUE),
+#     vol_total = mean(vol_total)
+#   )
+# View(df1)
+
+
+sd(tky_total_css$vol_total)
+
+View(tky_total_css)
+
+
+ggplot(tky_total_css) +
+  geom_bar(aes(x = year_restoration2, y = vol_total, fill=year_restoration2), stat = "summary", fun.y = "mean") +
+  geom_errorbar(aes(ymin=vol_total-sd, ymax=vol_total+sd), width=.2, position=position_dodge(.9)) +
+  theme_classic() +
+  ggtitle("Changes in proportional biomass of arthropods over time") +
+  xlab("Year of restoration") +
+  ylab("Proportional biomass") +
+  scale_y_continuous(expand=c(0,0), breaks = seq(0, 2200, by=250))+
+  scale_x_discrete(expand=c(0.2,0))+
+  scale_fill_brewer("Year of Restoration",palette="Set2") +
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))
+
+ggplot(df2) +
+  geom_bar(aes(x = year_restoration2, y = vol_total, fill=year_restoration2), stat = "summary", fun.y = "mean") +
+  geom_errorbar(aes(ymin=vol_total-sd, ymax=vol_total+sd), width=.2, position=position_dodge(.9)) +
+  theme_classic() +
+  ggtitle("Changes in proportional biomass of arthropods over time") +
+  xlab("Year of restoration") +
+  ylab("Proportional biomass") +
+  scale_y_continuous(expand=c(0,0), breaks = seq(0, 2200, by=250))+
+  scale_x_discrete(expand=c(0.2,0))+
+  scale_fill_brewer("Year of Restoration",palette="Set2") +
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))
+
+
+```
+
+
+
+
+
+```{r}
+
+# CSS data
+plot_css_data <- arth_ref_raw %>% 
+  filter(type != "GL")
+
+# Add new column
+plot_css_data$year_restoration2 <- ifelse(plot_css_data$type == "CSS", plot_css_data$year_restoration, plot_css_data$type)
+
+
+#Make new data frame
+plot_css_data <- plot_css_data %>% 
+  select(transect, year_restoration2, detritivores, herb_chew, herb_suck, parasitoid, pollinator, predator, scavenger) %>% 
+  gather("functional_group", "proportional_biomass", 3:9)
+
+
+# GL data
+plot_gl_data <- arth_ref_raw %>% 
+  filter(type != "CSS")
+
+# Add new column
+plot_gl_data$year_restoration2 <- ifelse(plot_gl_data$type == "GL", plot_gl_data$year_restoration, plot_gl_data$type)
+
+
+#Make new data frame
+plot_gl_data <- plot_gl_data %>% 
+  select(transect, year_restoration2, detritivores, herb_chew, herb_suck, parasitoid, pollinator, predator, scavenger) %>% 
+  gather("functional_group", "proportional_biomass", 3:9)
+```
+
+
+```{r}
+plot_css <- ggplot(plot_css_data) + 
+  geom_bar(aes(x = year_restoration2, y = proportional_biomass, fill = functional_group), position = "fill", stat = "summary", fun.y = "mean") +
+  theme_classic() +
+  ggtitle("Changes in proportional biomass of arthropods over time") +
+  xlab("Year of restoration") +
+  ylab("Proportional biomass") +
+  scale_y_continuous(expand=c(0,0), breaks = c(.2,.4,.6,.8,1))+
+  scale_x_discrete(expand=c(0.2,0))+
+  scale_fill_brewer("Functional Group",palette="Set2", labels=c("Detritivore", "Herbivore (chewing)", "Herbivore (sucking)", "Parasitoid", "Pollinator", "Predator", "Scavenger")) +
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))
+
+plot_css
+
+plot_gl <- ggplot(plot_gl_data) + 
+  geom_bar(aes(x = year_restoration2, y = proportional_biomass, fill = functional_group), position = "fill", stat = "summary", fun.y = "mean") +
+  theme_classic() +
+  ggtitle("Changes in proportional biomass of arthropods over time") +
+  xlab("Year of restoration") +
+  ylab("Proportional biomass") +
+  scale_y_continuous(expand=c(0,0), breaks = c(.2,.4,.6,.8,1))+
+  scale_x_discrete(expand=c(0.2,0))+
+  scale_fill_brewer("Functional Group",palette="Set2", labels=c("Detritivore", "Herbivore (chewing)", "Herbivore (sucking)", "Parasitoid", "Pollinator", "Predator", "Scavenger")) +
+  theme(plot.title = element_text(face="bold", size = 11),
+        axis.title = element_text(size=8),
+        legend.title = element_text(size=8, face="bold"),
+        legend.text = element_text(size=8))
+
+plot_gl
+
+ggsave("plot_relative_biomass_gl.png", plot = plot_gl, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+
+plot_gl
+
+ggsave("plot_relative_biomass_css.png", plot = plot_css, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+
+
+ggsave("plot_relative_biomass_gl.png", plot = plot_gl, device = "png", width = 5, height = 3, units = c("in"), dpi = 300)
+
+```
+

@@ -602,7 +602,7 @@ ggsave("plot_relative_biomass.png", plot = plot_all, device = "png", width = 5, 
 
 ```
 
-## Habitat specifc pllots: CSS
+## Habitat specifc plots: CSS
 ```{r}
 
 arth_data_2css <- arth_css %>% 
@@ -1370,10 +1370,27 @@ summ(lme_even_gl)
 
 ```{r}
 
+lme_rich_taxa_plot <- ggplot(arth_data, aes(x = year_restoration, y = richness_taxa, colour=type)) +
+  theme_classic() +
+  labs(x="Year of restoration",y="Taxa richness")+
+  ggtitle("Taxa richness ~ Year of restoration + Habitat + (1|transect)")+
+  geom_point() +
+  scale_color_manual(values = c("black", "#D95F02", "#1B9E77"), name = "Models by habitat type") +
+  scale_x_continuous(breaks=0:5)+
+  scale_y_continuous(breaks=seq(0, 20, by = 2))+
+  geom_jitter() +
+  geom_abline(aes(color = "Both habitat types", intercept=`(Intercept)`, slope=year_restoration), as.data.frame(t(fixef(lme_rich_taxa))), lwd = 1) +
+  geom_abline(aes(color = "CSS", intercept=`(Intercept)`, slope=year_restoration), as.data.frame(t(fixef(lme_rich_taxa_css))), lwd = 1) +
+  geom_abline(aes(color = "GL", intercept=`(Intercept)`, slope=year_restoration), as.data.frame(t(fixef(lme_rich_taxa_gl))), lwd = 1)  
+
+lme_rich_taxa_plot
+
+###
+
 lme_rich_ant_plot <- ggplot(arth_data, aes(x = year_restoration, y = richness_ant, colour=type)) +
   theme_classic() +
   labs(x="Year of restoration",y="Ant richness")+
-  ggtitle("Ant richness ~ Year of restoration + Rainfall + Habitat + (1|transect)")+
+  ggtitle("Ant richness ~ Year of restoration + Habitat + (1|transect)")+
   geom_point() +
   scale_color_manual(values = c("black", "#D95F02", "#1B9E77"), name = "Models by habitat type") +
   scale_x_continuous(breaks=0:5)+
@@ -1386,10 +1403,12 @@ lme_rich_ant_plot <- ggplot(arth_data, aes(x = year_restoration, y = richness_an
 
 lme_rich_ant_plot
 
+###
+
 lme_even_plot <- ggplot(arth_data, aes(x = year_restoration, y = evenness_functional, colour=type)) +
   theme_classic() +
   labs(x="Year of restoration",y="Functional evenness")+
-  ggtitle("Functional evenness ~ Year of restoration + Rainfall + Habitat + (1|transect)")+
+  ggtitle("Functional evenness ~ Year of restoration + Habitat + (1|transect)")+
   geom_point() +
   scale_color_manual(values = c("black", "#D95F02", "#1B9E77"), name = "Models by habitat type") +
   scale_x_continuous(breaks=0:5)+
@@ -1402,6 +1421,8 @@ lme_even_plot <- ggplot(arth_data, aes(x = year_restoration, y = evenness_functi
 
 lme_even_plot
 
+
+ggsave("lme_rich_taxa_plot.png", plot = lme_rich_taxa_plot, device = "png", width = 8, height = 5, units = c("in"), dpi = 300)
 
 ggsave("lme_rich_ant_plot.png", plot = lme_rich_ant_plot, device = "png", width = 8, height = 5, units = c("in"), dpi = 300)
 
