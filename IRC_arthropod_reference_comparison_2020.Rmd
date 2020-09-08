@@ -60,7 +60,6 @@ arth_ref_raw <- read_csv(here("data", "IRC_restoration_arthropod_data_reference.
 ```
 
 
-
 ```{r}
 
 
@@ -88,6 +87,34 @@ generate_label_df <- function(TUKEY, variable){
 }
 
 ```
+```{r}
+
+
+QuantileType1 <- function (v, p) {
+ v = sort(v)
+ m = 0
+ n = length(v)
+ j = floor((n * p) + m)
+ g = (n * p) + m - j
+ y = ifelse (g == 0, 0, 1)
+ ((1 - y) * v[j]) + (y * v[j+1])
+}
+
+# Generate labels for similar groupings
+generate_label_df <- function(TUKEY, variable){
+
+  # Extract labels and factor levels from Tukey post-hoc 
+  Tukey.levels <- TUKEY[[variable]][,4]
+  Tukey.labels <- data.frame(multcompLetters(Tukey.levels)['Letters'])
+
+  #I need to put the labels in the same order as in the boxplot :
+  Tukey.labels$type=rownames(Tukey.labels)
+  Tukey.labels=Tukey.labels[order(Tukey.labels$type) , ]
+  return(Tukey.labels)
+}
+
+```
+
 
 
 ```{r}
@@ -564,7 +591,7 @@ css_tky_bar_fe <- ggplot(css_tky1, aes(x = year_restoration, y = parasitoid)) +
 
 css_tky_bar_fe
 
-# ggsave("css_tky_bar_fe", plot = css_tky_bar_fe, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
+ggsave("css_tky_bar_fe", plot = css_tky_bar_fe, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
 
 ```
 
@@ -839,9 +866,7 @@ gl_tky_bar_tr <- ggplot(gl_tky1, aes(x = year_restoration2, y = richness_taxa)) 
   labs(x = '\nYear of Restoration', y = 'Taxa richness (avg)') +
   ggtitle(expression(atop(bold("Comparison of mean taxa richness over time within GL polygons"), ""))) +
   theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
-  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot") +
-  stat_summary(fun.y=mean, colour="gold", geom="point", 
-               shape=16, size=3,show_guide = FALSE) +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot")+
   scale_fill_brewer(palette="Paired") +
   geom_text(data = labs_df1, aes(x = year_restoration2, y = richness_taxa, label = Letters,vjust = -.5, hjust=-.5)) +
   theme(plot.title = element_text(vjust=-0.6))+
@@ -904,9 +929,7 @@ css_tky_bar_tr <- ggplot(css_tky1, aes(x = year_restoration2, y = richness_taxa)
   labs(x = '\nYear of Restoration', y = 'Taxa richness (avg)') +
   ggtitle(expression(atop(bold("Comparison of mean taxa richness over time within CSS polygons"), ""))) +
   theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
-  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot") +
-  stat_summary(fun.y=mean, colour="gold", geom="point", 
-               shape=16, size=3,show_guide = FALSE) +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot")+
   scale_fill_brewer(palette="Paired") +
   geom_text(data = labs_df1, aes(x = year_restoration2, y = richness_taxa, label = Letters,vjust = -.5, hjust=-.5)) +
   theme(plot.title = element_text(vjust=-0.6))+
@@ -969,9 +992,7 @@ gl_tky_bar_ar <- ggplot(gl_tky2, aes(x = year_restoration2, y = richness_ant)) +
   labs(x = '\nYear of Restoration', y = 'Ant species richness (avg)') +
   ggtitle(expression(atop(bold("Comparison of mean ant species richness over time within GL polygons"), ""))) +
   theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
-  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot") +
-  stat_summary(fun.y=mean, colour="gold", geom="point", 
-               shape=16, size=3,show_guide = FALSE) +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot")+
   scale_fill_brewer(palette="Paired") +
   geom_text(data = labs_df1, aes(x = year_restoration2, y = richness_ant, label = Letters,vjust = -.5, hjust=-.5)) +
   theme(plot.title = element_text(vjust=-0.6))+
@@ -1034,9 +1055,7 @@ css_tky_bar_ar <- ggplot(css_tky2, aes(x = year_restoration2, y = richness_ant))
   labs(x = '\nYear of Restoration', y = 'Ant species richness (avg)') +
   ggtitle(expression(atop(bold("Comparison of mean ant species richness over time within CSS polygons"), ""))) +
   theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
-  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot") +
-  stat_summary(fun.y=mean, colour="gold", geom="point", 
-               shape=16, size=3,show_guide = FALSE) +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot")+
   scale_fill_brewer(palette="Paired") +
   geom_text(data = labs_df1, aes(x = year_restoration2, y = richness_ant, label = Letters,vjust = -.5, hjust=-.5)) +
   theme(plot.title = element_text(vjust=-0.6))+
@@ -1100,9 +1119,7 @@ gl_tky_bar_fe <- ggplot(gl_tky3, aes(x = year_restoration2, y = evenness_functio
   labs(x = '\nYear of Restoration', y = 'Functional evenness (avg)') +
   ggtitle(expression(atop(bold("Comparison of mean functional evenness over time within GL polygons"), ""))) +
   theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
-  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot") +
-  stat_summary(fun.y=mean, colour="gold", geom="point", 
-               shape=16, size=3,show_guide = FALSE) +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot")+
   scale_fill_brewer(palette="Paired") +
   geom_text(data = labs_df1, aes(x = year_restoration2, y = evenness_functional, label = Letters,vjust = -.5, hjust=-.5)) +
   theme(plot.title = element_text(vjust=-0.6))+
@@ -1158,12 +1175,6 @@ labs_df1 <-merge(labels1,yvalue1) #merge dataframes
 
 # view(labs_df)
 
-means <- aggregate(evenness_functional ~  year_restoration2, tky_para, mean)
-
-View(means)
-
-means$evenness_functional <- round(means$evenness_functional, digits = 3)
-
 css_tky_bar_fe <- ggplot(tky_para, aes(x = year_restoration2, y = evenness_functional)) +
   geom_blank() +
   theme_bw() +
@@ -1171,26 +1182,13 @@ css_tky_bar_fe <- ggplot(tky_para, aes(x = year_restoration2, y = evenness_funct
   labs(x = '\nYear of Restoration', y = 'Functional evenness (avg)') +
   ggtitle(expression(atop(bold("Comparison of mean functional evenness over time within CSS polygons"), ""))) +
   theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
-  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot") +
-  stat_summary(fun.y=mean, colour="gold", geom="point", 
-               shape=16, size=3,show_guide = FALSE) +
+  geom_boxplot(aes(fill=year_restoration2), stat = "boxplot")+
   scale_fill_brewer(palette="Paired") +
-  geom_text(data = labs_df1, aes(x = year_restoration2, y = evenness_functional, label = Letters,vjust = -1, hjust=-.5)) +
-  theme(plot.title = element_text(vjust=-0.6)) +
-  scale_x_discrete() 
-  
+  geom_text(data = labs_df1, aes(x = year_restoration2, y = evenness_functional, label = Letters,vjust = -.5, hjust=-.5)) +
+  theme(plot.title = element_text(vjust=-0.6))+
+  scale_x_discrete()
 
 css_tky_bar_fe
-
-mean(tky_para$evenness_functional)
-
-View(tky_para)
-
-tky_para2 <- aggregate(tky_para,list(tky_para$year_restoration2), mean, na.rm=TRUE)
-
-View(tky_para2)
-
-colnames(diversity2)[1] <- "polygon_id"
 
 ggsave("css_tky_bar_fe.png", plot = css_tky_bar_fe, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
 
@@ -1805,13 +1803,15 @@ labs_df1 <-merge(labels1,yvalue1) #merge dataframes
 
 ## WITH OUTLIERS
 tky_bar_total_css <- ggplot(tky_total_css, aes(x = year_restoration2, y = vol_total)) +
-  geom_bar(aes(fill=year_restoration2)) +
+  geom_blank() +
   theme_bw() +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank()) +
   labs(x = '\nYear of Restoration', y = 'Total biomass') +
   ggtitle(expression(atop(bold("Comparison of mean total biomass over time in CSS polygons")))) +
-  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none")  +
+  theme(plot.title = element_text(hjust = 0.5, face='bold'), legend.position = "none") +
+  geom_boxplot(aes(fill=year_restoration2), 
+               stat = "boxplot") +
   scale_fill_brewer(palette="Paired") +
   geom_text(data = labs_df1, aes(x = year_restoration2, y = vol_total, label = Letters,vjust = -.5, hjust=-.5)) +
   theme(plot.title = element_text(vjust=-0.6))+
@@ -1841,74 +1841,8 @@ tky_bar_total_css
 tky_bar_total_css_lims
 
 # ggsave("tky_bar_total_css.png", plot = tky_bar_total_css, device = "png", width = 7, height = 8, units = c("in"), dpi = 300)
-
+# 
 # ggsave("tky_bar_total_css_lims.png", plot = tky_bar_total_css_lims, device = "png", width = 7, height = 5, units = c("in"), dpi = 300)
-
-
-data_summary <- function(data, varname, groupnames){
-  require(plyr)
-  summary_func <- function(x, col){
-    c(mean = mean(x[[col]], na.rm=TRUE),
-      sd = sd(x[[col]], na.rm=TRUE))
-  }
-  data_sum<-ddply(data, groupnames, .fun=summary_func,
-                  varname)
-  data_sum <- rename(data_sum, c("mean" = varname))
- return(data_sum)
-}
-
-
-df2 <- data_summary(tky_total_css, varname="vol_total",
-                    groupnames=c("year_restoration2"))
-# Convert dose to a factor variable
-df2$year_restoration2=as.factor(df2$year_restoration2)
-head(df2)
-
-View(df2)
-
-# df1 <- tky_total_css %>%
-#   group_by(year_restoration2) %>%
-#   summarise(
-#     sd = sd(vol_total, na.rm = TRUE),
-#     vol_total = mean(vol_total)
-#   )
-# View(df1)
-
-
-sd(tky_total_css$vol_total)
-
-View(tky_total_css)
-
-
-ggplot(tky_total_css) +
-  geom_bar(aes(x = year_restoration2, y = vol_total, fill=year_restoration2), stat = "summary", fun.y = "mean") +
-  geom_errorbar(aes(ymin=vol_total-sd, ymax=vol_total+sd), width=.2, position=position_dodge(.9)) +
-  theme_classic() +
-  ggtitle("Changes in proportional biomass of arthropods over time") +
-  xlab("Year of restoration") +
-  ylab("Proportional biomass") +
-  scale_y_continuous(expand=c(0,0), breaks = seq(0, 2200, by=250))+
-  scale_x_discrete(expand=c(0.2,0))+
-  scale_fill_brewer("Year of Restoration",palette="Set2") +
-  theme(plot.title = element_text(face="bold", size = 11),
-        axis.title = element_text(size=8),
-        legend.title = element_text(size=8, face="bold"),
-        legend.text = element_text(size=8))
-
-ggplot(df2) +
-  geom_bar(aes(x = year_restoration2, y = vol_total, fill=year_restoration2), stat = "summary", fun.y = "mean") +
-  geom_errorbar(aes(ymin=vol_total-sd, ymax=vol_total+sd), width=.2, position=position_dodge(.9)) +
-  theme_classic() +
-  ggtitle("Changes in proportional biomass of arthropods over time") +
-  xlab("Year of restoration") +
-  ylab("Proportional biomass") +
-  scale_y_continuous(expand=c(0,0), breaks = seq(0, 2200, by=250))+
-  scale_x_discrete(expand=c(0.2,0))+
-  scale_fill_brewer("Year of Restoration",palette="Set2") +
-  theme(plot.title = element_text(face="bold", size = 11),
-        axis.title = element_text(size=8),
-        legend.title = element_text(size=8, face="bold"),
-        legend.text = element_text(size=8))
 
 
 ```
